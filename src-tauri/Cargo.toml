@@ -1,0 +1,17 @@
+[package]
+name = "piano-atelier"
+version = "0.1.0"
+description = "Offline piano and sheet music playback"
+authors = ["Piano Atelier"]
+edition = "2021"
+
+[lib]
+name = "piano_atelier_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"

@@ -1,0 +1,14 @@
+<score-partwise version="4.0">
+  <part-list><score-part id="P1"><part-name>Right</part-name></score-part><score-part id="P2"><part-name>Left</part-name></score-part></part-list>
+  <part id="P1"><measure number="0" implicit="yes">
+    <attributes><divisions>3</divisions><time><beats>6</beats><beat-type>8</beat-type></time></attributes>
+    <direction><direction-type><metronome><beat-unit>quarter</beat-unit><beat-unit-dot/><per-minute>60</per-minute></metronome></direction-type></direction>
+    <note><pitch><step>C</step><octave>4</octave></pitch><duration>1</duration><time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification></note>
+    <note><pitch><step>D</step><octave>4</octave></pitch><duration>1</duration><time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification></note>
+    <note><pitch><step>E</step><octave>4</octave></pitch><duration>1</duration><time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification></note>
+  </measure></part>
+  <part id="P2"><measure number="0" implicit="yes">
+    <attributes><divisions>3</divisions></attributes>
+    <note><pitch><step>C</step><octave>3</octave></pitch><duration>3</duration></note>
+  </measure></part>
+</score-partwise>
