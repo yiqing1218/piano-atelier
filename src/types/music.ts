@@ -6,6 +6,10 @@ export interface NoteEvent {
   velocity: number;
   track?: number;
   part?: string;
+  program?: number;
+  channel?: number;
+  percussion?: boolean;
+  instrumentName?: string;
 }
 
 export interface ScoreDocument {

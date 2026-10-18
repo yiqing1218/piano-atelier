@@ -1,0 +1,10 @@
+{
+  "name": "Salamander · Yamaha C5",
+  "author": "Alexander Holm",
+  "license": "CC BY 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "sourceUrl": "https://github.com/darosh/samples-piano",
+  "packageVersion": "1.0.5",
+  "roots": [21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108],
+  "layers": [{ "id": 4, "velocity": 40 }, { "id": 8, "velocity": 70 }, { "id": 12, "velocity": 100 }, { "id": 16, "velocity": 124 }]
+}

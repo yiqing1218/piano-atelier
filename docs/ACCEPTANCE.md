@@ -71,3 +71,38 @@
 - SF3 decoding is offered by the library but has not been exercised with an actual SF3 file. Clean offline Windows installation, hardware keyboard rollover and listening/latency profiling are still manual release checks.
 
 Checked items above refer to frontend/source/browser verification only unless stated otherwise. No Windows executable or installer has been produced.
+
+## Verification record — 2026-10-18, acoustic piano revision
+
+- [x] Default startup uses real stereo Yamaha C5 recordings without manually importing a font.
+- [x] Four recorded velocity layers choose different recordings; A0 and C8 use actual endpoint samples.
+- [x] 120 audio streams (~20.2 MB) are packaged locally; generated sharp-note filenames avoid fragment/URL decoding problems. Sample/attribution bytes verified against installed upstream packages.
+- [x] CC BY 3.0 author/title/source/license attribution is retained in `docs/PIANO_SAMPLES_LICENSE.md`, the UI and bundled assets. MIT packaging notices are preserved separately.
+- [x] Saved user fonts remain available; invalid/known synthetic test selections revert to the real piano. “使用内置实录钢琴” clears the old default selection.
+- [x] Note release during decoding cancels the pending start. Distinct same-pitch voices release independently. Stop/pause clears playback tails while preserving manually held notes.
+- [x] `npm test`: 60 tests / 9 files. `npm run build`: passed. `npm audit`: 0 vulnerabilities.
+- [x] Production Edge test: A0, C2, C4, C7, C8 each produced nonzero stereo output; eight concurrent keys; MIDI/MusicXML/MXL playback; warmed default-layer playback while browser networking was disabled. No remote requests or page errors.
+- [x] Recorded an original test excerpt from the actual loaded buffers: `output/playwright/yamaha-c5-register-preview.wav` (9 seconds, A0 → C2 → C4 → C7 → C8). Screenshot: `output/playwright/real-piano.png`.
+- [ ] Subjective listening approval by the user, physical speakers/headphones comparison, sustained heavy-load profiling and clean Windows installation remain outside the automated checks.
+
+No additional effects were introduced. Native desktop/OMR checks remain blocked as recorded above.
+
+
+## Multi-instrument revision — 2026-10-18
+This user-requested scope supersedes the initial piano-only restrictions above.
+
+- [x] Unified instrument mode: all MIDI/MusicXML/MXL events use one selected instrument, including revoicing source drum events.
+- [x] Six choices: Yamaha C5 piano, acoustic steel guitar, fingered electric bass, violin, string ensemble, standard drum kit.
+- [x] Multitrack mode preserves GM program/channel/percussion metadata; original MIDI channel 10 remains drums.
+- [x] Preserve MIDI pitches 0–127 and format-0 channel/program changes; visual keyboard still exactly 88 keys.
+- [x] Separate tracks and manual audition channels; same-pitch note-off does not release another track/instrument.
+- [x] Pause/stop silences playback tails while preserving manual channels. Mode changes clear held voices and preserve transport position.
+- [x] Keyboard audition in multitrack mode uses the selected audition instrument, without replacing score instrumentation.
+- [x] Existing acoustic piano and custom local piano SoundFont workflow retained.
+- [x] Verified MIT MuseScore General 0.2 source/license; 39,900,972 bytes bundled locally, SHA-256 checked at every build, effects disabled.
+- [x] Six-track demo button works under production CSP; demo emitted as a local file, not an inlined data URL.
+- [x] Source tests: `npm test` — 73 passed; `npm run build` passed; `npm audit` — 0 vulnerabilities.
+- [x] Real Edge production preview: five new instrument choices produce nonzero audio RMS; six-track import/demo, pause/resume/stop, offline playback and custom-piano compatibility pass. No external requests or page errors in the instrument smoke; final demo check has no console errors and post-stop RMS 0.
+- [ ] MIDI CC (volume/pan/pedal), pitch bend and GS/XG extended banks are not restored; parser warns when detected controller/pitch-bend events are omitted.
+- [ ] MusicXML orchestration is not parsed; its parts default to piano in multitrack mode and can be globally revoiced in unified mode.
+- [ ] Native Windows executable/installer and real Audiveris output remain unverified for the previously documented environment blockers. No Rust code changed.

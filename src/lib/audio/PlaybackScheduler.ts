@@ -43,7 +43,7 @@ export class PlaybackScheduler {
     this.offset = Number.isFinite(offsetSeconds) ? Math.max(0, Math.min(offsetSeconds, this.duration)) : 0;
     this.frozenPosition = this.offset;
     try {
-      await this.engine.prepare();
+      await this.engine.prepare(notes.filter((note) => note.start + note.duration > this.offset && note.start < this.offset + 4));
       if (generation !== this.generation) return;
       this.audioStart = this.engine.currentTime;
       this.running = true;
@@ -68,7 +68,7 @@ export class PlaybackScheduler {
             const count = this.counts.get(note.midi) ?? 0;
             this.counts.set(note.midi, count + 1);
             if (!count) callbacks.onNoteOn(note.midi);
-            void this.engine.noteOn(note.midi, note.velocity, voice).catch((error) => {
+            void this.engine.noteOn(note.midi, note.velocity, voice, note).catch((error) => {
               if (generation !== this.generation) return;
               this.stop(); callbacks.onError?.(error);
             });
@@ -106,6 +106,7 @@ export class PlaybackScheduler {
     if (this.displayTimer !== null) clearInterval(this.displayTimer);
     this.eventTimer = this.displayTimer = null;
     for (const [voice, note] of this.active) this.engine.noteOff(note.midi, voice);
+    this.engine.stopPlayback();
     this.active.clear();
     for (const midi of this.counts.keys()) this.callbacks?.onNoteOff(midi);
     this.counts.clear();

@@ -8,8 +8,14 @@ The repository is a starter implementation, not a finished release. The current 
 - Added dependency lockfile, resolved initial npm audit advisories by updating Vitest to 4.1.12, verified frontend build and local AudioWorklet packaging.
 - Fixed input source ownership, pointer cancellation, octave shifts, repeated notes, pause/resume, seek, immediate speed changes, timeline coordinates/highlighting, SoundFont audio routing and persistence.
 - Extended MusicXML coverage for pickup bars, tempo maps, ties and explicit pitch semantics. Added visible unsupported-notation warnings. This completes only those items from phase 2, not full engraving or full notation support.
-- This release remains piano-only. PDF/image recognition is optional existing functionality; do not expand it as part of this version. Native OMR success is not certified without a real Audiveris output.
+- Initial stabilization was piano-only; the subsequent user-requested multi-instrument revision supersedes that scope. PDF/image recognition is optional existing functionality; do not expand it as part of this version. Native OMR success is not certified without a real Audiveris output.
 - Windows configuration and local assets pass schema/existence validation. Actual Tauri compilation, launch and NSIS installation are blocked by missing Rust/Cargo and C++ build prerequisites; a production Windows release is not complete.
+
+### 2026-10-18 acoustic piano revision
+- Replaced the default oscillator preview with bundled stereo Salamander Yamaha C5 recordings, four velocity layers / 120 files / ~20.2 MB. Redistribution license and attribution verified; no runtime remote audio.
+- Added source-aware sample voices, bounded decoded-buffer caching, startup/transport warmup and an explicit button to restore the built-in piano.
+- Imported SF2/SF3/DLS remains supported. Oscillators are an error fallback only.
+- 60 tests plus production-browser low/mid/high-register, polyphony, import and offline playback checks passed; see the latest acceptance record. Windows build blockers remain unchanged.
 
 ## Phase 1 — make the core stable
 1. Install dependencies and run `npm test` and `npm run build`.
@@ -35,3 +41,10 @@ The repository is a starter implementation, not a finished release. The current 
 
 ## Codex task prompt
 You are continuing Piano Atelier. Read `AGENTS.md` and all files in `docs/` first. Work in small increments. Do not create a static mockup in place of functional code. Start by installing dependencies and fixing the current project until `npm test` and `npm run build` pass. Then verify and improve the full 88-key keyboard, MIDI import/playback, MusicXML/MXL parser, SoundFont local loading and Audiveris bridge. Add tests for each behavior and update the acceptance checklist. Do not use external APIs or runtime CDNs. Never bundle an audio bank without a verified license. Report exact commands run and their results.
+
+## Completed multi-instrument revision — 2026-10-18
+- Added two functional playback modes and six audition instruments, keeping the Yamaha C5 piano path.
+- Preserved MIDI GM programs, percussion and all pitches; separate synth channels isolate tracks and manual input.
+- Verified MIT MuseScore General asset, bundled bytes/license with a SHA-256 check, no runtime network or effects.
+- Added instrument routing, mode/error UI, six-track demo, format-0 program-change and full-range fixtures/tests.
+- Updated acceptance and verification records. MIDI CC/pitch bend, GS/XG banks, MusicXML orchestration and native Windows certification remain outside this revision.

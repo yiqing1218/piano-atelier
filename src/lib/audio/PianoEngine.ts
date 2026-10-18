@@ -1,11 +1,18 @@
 import { WorkletSynthesizer } from "spessasynth_lib";
 import { midiToFrequency } from "../music/noteNames";
+import { SampledPiano, type SampleVoice } from "./SampledPiano";
+import pianoConfig from "./pianoSamples.json";
+import { InstrumentBank } from "./InstrumentBank";
+import { resolveInstrument, type PlaybackMode, type InstrumentId } from "./instruments";
+import type { NoteEvent } from "../../types/music";
 
 interface Voice {
   midi: number;
   started: boolean;
   oscillators?: OscillatorNode[];
   gain?: GainNode;
+  sample?: SampleVoice;
+  bankChannel?: number;
 }
 
 export class PianoEngine {
@@ -16,8 +23,30 @@ export class PianoEngine {
   private processorReady: Promise<void> | null = null;
   private loadVersion = 0;
   private presetName = "";
+  private sampledPiano: SampledPiano | null = null;
+  private useSamples = false;
+  private samplePreparation: Promise<void> | null = null;
+  private instruments: InstrumentBank | null = null;
+  private playbackMode: PlaybackMode = "unified";
+  private selectedInstrument: InstrumentId = "piano";
 
-  get mode(): "soundfont" | "preview" { return this.synth ? "soundfont" : "preview"; }
+  configureInstruments(mode: PlaybackMode, instrument: InstrumentId): void {
+    this.stopAll(); this.instruments?.reset();
+    this.playbackMode = mode; this.selectedInstrument = instrument;
+  }
+
+  private patch(note?: Partial<NoteEvent>) { return resolveInstrument(this.playbackMode, this.selectedInstrument, note); }
+  private usesBank(note?: Partial<NoteEvent>): boolean {
+    const patch = this.patch(note);
+    return patch.percussion || patch.program !== 0;
+  }
+
+  async prepareInstruments(): Promise<void> {
+    this.instruments ??= new InstrumentBank(this.getContext(), this.master!);
+    await this.instruments.prepare();
+  }
+
+  get mode(): "soundfont" | "samples" | "preview" { return this.synth ? "soundfont" : this.useSamples ? "samples" : "preview"; }
   get pianoName(): string { return this.presetName; }
   get currentTime(): number { return this.context?.currentTime ?? 0; }
 
@@ -31,9 +60,28 @@ export class PianoEngine {
     return this.context;
   }
 
-  async prepare(): Promise<void> {
+  async prepare(notes?: readonly (Partial<NoteEvent> & { midi: number; velocity: number })[]): Promise<void> {
     const context = this.getContext();
     if (context.state !== "running") await context.resume();
+    await this.samplePreparation;
+    if (notes?.some((note) => this.usesBank(note))) await this.prepareInstruments();
+    if (this.useSamples && notes) await this.sampledPiano!.prepareNotes(notes.filter((note) => !this.usesBank(note)));
+  }
+
+  async loadBuiltInPiano(): Promise<void> {
+    const version = ++this.loadVersion;
+    const context = this.getContext();
+    this.sampledPiano ??= new SampledPiano(context, this.master!);
+    const preparation = this.sampledPiano.prepare();
+    this.samplePreparation = preparation;
+    try {
+      await preparation;
+      if (version !== this.loadVersion) throw new Error("已取消旧音源加载。");
+      this.stopAll(); this.synth?.destroy(); this.synth = null;
+      this.useSamples = true; this.presetName = pianoConfig.name;
+    } finally {
+      if (this.samplePreparation === preparation) this.samplePreparation = null;
+    }
   }
 
   async loadSoundfont(buffer: ArrayBuffer): Promise<void> {
@@ -73,6 +121,7 @@ export class PianoEngine {
       this.stopAll();
       this.synth?.destroy();
       this.synth = synth;
+      this.useSamples = false;
       this.presetName = piano.name;
     } catch (error) {
       synth.destroy();
@@ -82,18 +131,29 @@ export class PianoEngine {
     }
   }
 
-  async noteOn(midi: number, velocity = 0.78, source = `manual:${midi}`): Promise<void> {
-    if (!Number.isInteger(midi) || midi < 21 || midi > 108 || !Number.isFinite(velocity) || velocity <= 0) return;
+  async noteOn(midi: number, velocity = 0.78, source = `manual:${midi}`, note?: Partial<NoteEvent>): Promise<void> {
+    if (!Number.isInteger(midi) || midi < 0 || midi > 127 || !Number.isFinite(velocity) || velocity <= 0) return;
     this.noteOff(midi, source);
     const voice: Voice = { midi, started: false };
     this.voices.set(source, voice);
     try {
       const context = this.getContext();
       if (context.state !== "running") await context.resume();
+      await this.samplePreparation;
+      if (this.usesBank(note)) await this.prepareInstruments();
       // Release/stop may have happened while resume was pending.
       if (this.voices.get(source) !== voice) return;
       const normalizedVelocity = Math.max(0.01, Math.min(1, velocity));
       voice.started = true;
+      if (this.usesBank(note)) {
+        voice.bankChannel = this.instruments!.channel(this.patch(note), source.startsWith("playback:") ? `playback:${note?.track ?? 0}` : "manual");
+        this.instruments!.noteOn(voice.bankChannel, midi, Math.round(normalizedVelocity * 127));
+        return;
+      }
+      if (this.useSamples) {
+        voice.sample = await this.sampledPiano!.noteOn(midi, normalizedVelocity, () => this.voices.get(source) === voice, source) ?? undefined;
+        return;
+      }
       if (this.synth) {
         this.synth.noteOn(0, midi, Math.round(normalizedVelocity * 127));
         return;
@@ -124,7 +184,7 @@ export class PianoEngine {
         voice.oscillators.push(oscillator);
       }
     } catch (error) {
-      this.noteOff(midi, source);
+      if (this.voices.get(source) === voice) this.noteOff(midi, source);
       throw error;
     }
   }
@@ -134,10 +194,17 @@ export class PianoEngine {
     if (!voice) return;
     this.voices.delete(source);
     if (!voice.started) return;
+    if (voice.bankChannel !== undefined) {
+      if (![...this.voices.values()].some((other) => other.started && other.bankChannel === voice.bankChannel && other.midi === voice.midi)) {
+        this.instruments?.noteOff(voice.bankChannel, voice.midi);
+      }
+      return;
+    }
+    if (voice.sample) { voice.sample.release(); return; }
     if (this.synth) {
       // A MIDI note-off releases every matching pitch on this channel. Keep it held
       // until the last overlapping input/playback instance releases that pitch.
-      if (![...this.voices.values()].some((other) => other.started && other.midi === voice.midi)) {
+      if (![...this.voices.values()].some((other) => other.started && other.bankChannel === undefined && !other.sample && other.midi === voice.midi)) {
         this.synth.noteOff(0, voice.midi);
       }
       return;
@@ -163,8 +230,18 @@ export class PianoEngine {
   }
 
   stopAll(): void {
+    this.instruments?.stopAll();
     this.synth?.stopAll(true);
+    this.sampledPiano?.stopAll();
     for (const voice of this.voices.values()) this.releasePreview(voice, 0.01);
     this.voices.clear();
+  }
+
+  stopPlayback(): void {
+    for (const [source, voice] of this.voices) {
+      if (source.startsWith("playback:")) this.noteOff(voice.midi, source);
+    }
+    this.sampledPiano?.stopAll("playback:");
+    this.instruments?.stopPlayback();
   }
 }

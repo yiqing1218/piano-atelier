@@ -4,15 +4,18 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/copy-synth-processor.mjs",
+    "predev": "npm run prepare:audio",
     "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",
-    "build": "npm run prepare:synth && tsc --noEmit && vite build",
+    "build": "npm run prepare:audio && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "prepare:synth": "node scripts/copy-synth-processor.mjs",
+    "prepare:piano": "node scripts/prepare-piano-samples.mjs",
+    "prepare:audio": "npm run prepare:synth && npm run prepare:piano && npm run prepare:instruments",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "prepare:instruments": "node scripts/prepare-instruments.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.5.0",
@@ -25,6 +28,10 @@
     "spessasynth_lib": "^4.3.0"
   },
   "devDependencies": {
+    "@audio-samples/piano-velocity12": "1.0.5",
+    "@audio-samples/piano-velocity16": "1.0.5",
+    "@audio-samples/piano-velocity4": "1.0.5",
+    "@audio-samples/piano-velocity8": "1.0.5",
     "@tauri-apps/cli": "^2.5.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.0",

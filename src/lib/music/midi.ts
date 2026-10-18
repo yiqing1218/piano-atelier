@@ -9,16 +9,9 @@ export function parseMidiFile(fileName: string, buffer: ArrayBuffer): ScoreDocum
   const warnings = new Set<string>();
 
   midi.tracks.forEach((track, trackIndex) => {
-    if (track.instrument.percussion) {
-      if (track.notes.length) warnings.add("本版仅演奏钢琴，已略过 MIDI 打击乐音轨。");
-      return;
-    }
     track.notes.forEach((note, noteIndex) => {
       if (!Number.isFinite(note.duration) || note.duration <= 0) {
         warnings.add("已略过零时值或无效时值的 MIDI 音符。"); return;
-      }
-      if (note.midi < 21 || note.midi > 108) {
-        warnings.add("已略过 A0–C8 范围以外的音符。"); return;
       }
       notes.push({
         id: `midi-${trackIndex}-${noteIndex}`,
@@ -28,6 +21,10 @@ export function parseMidiFile(fileName: string, buffer: ArrayBuffer): ScoreDocum
         velocity: Math.max(0, Math.min(1, note.velocity)),
         track: trackIndex,
         part: track.name || `Track ${trackIndex + 1}`,
+        program: track.instrument.number,
+        channel: track.channel,
+        percussion: track.instrument.percussion,
+        instrumentName: track.instrument.name,
       });
     });
   });
@@ -35,6 +32,9 @@ export function parseMidiFile(fileName: string, buffer: ArrayBuffer): ScoreDocum
   notes.sort((a, b) => a.start - b.start || a.midi - b.midi);
   const duration = notes.reduce((max, note) => Math.max(max, note.start + note.duration), 0);
   const tempo = midi.header.tempos[0]?.bpm ?? 120;
+  if (midi.tracks.some((track) => Object.keys(track.controlChanges).length || track.pitchBends.length)) {
+    warnings.add("当前保留音符、乐器编号和鼓轨；暂不还原 MIDI 音量、声像、踏板等控制器及弯音、GS/XG 扩展音色库。");
+  }
 
   if (!notes.length) throw new Error("MIDI 文件中没有可播放的音符事件。");
 

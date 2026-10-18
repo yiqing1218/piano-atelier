@@ -12,8 +12,12 @@ import { PlaybackScheduler } from "./lib/audio/PlaybackScheduler";
 import { formatTime, midiToNoteName } from "./lib/music/noteNames";
 import { KEYBOARD_CODES, midiForKeyboardCode } from "./lib/music/keyboardMap";
 import { parseScoreFile } from "./lib/music/parseScore";
-import { loadSavedSoundfont, saveSoundfont } from "./lib/storage/soundfontStore";
+import { clearSavedSoundfont, loadSavedSoundfont, saveSoundfont } from "./lib/storage/soundfontStore";
+import { restorePiano } from "./lib/audio/defaultPiano";
+import pianoConfig from "./lib/audio/pianoSamples.json";
+import { INSTRUMENTS, instrumentLabel, type InstrumentId, type PlaybackMode } from "./lib/audio/instruments";
 import type { ScoreDocument } from "./types/music";
+import bandDemoUrl from "../tests/fixtures/band-demo.mid?url&no-inline";
 
 const DEMO_NOTES = [
   [60, 0.00], [60, 0.45], [67, 0.90], [67, 1.35],
@@ -62,10 +66,12 @@ export default function App() {
   const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("unified");
+  const [instrument, setInstrument] = useState<InstrumentId>("piano");
   const [baseMidi, setBaseMidi] = useState(48);
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set());
-  const [status, setStatus] = useState("准备就绪 · 离线播放模式");
-  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("正在准备本地实录钢琴采样……");
+  const [busy, setBusy] = useState(true);
   const [soundfontName, setSoundfontName] = useState("");
   const [audiverisPath, setAudiverisPath] = useState(() => {
     try { return localStorage.getItem("piano-atelier-audiveris") ?? ""; } catch { return ""; }
@@ -82,13 +88,13 @@ export default function App() {
     setActiveNotes(new Set(activeSources.current.values()));
   }, []);
   const noteOn = useCallback((midi: number, velocity = 0.78, source = `manual:${midi}`) => {
-    if (midi < 21 || midi > 108) return;
+    if (busy || midi < 21 || midi > 108) return;
     markOn(midi, source);
     void engine.noteOn(midi, velocity, source).catch((error) => {
       markOff(source);
       setStatus(`音频启动失败：${error instanceof Error ? error.message : String(error)}`);
     });
-  }, [engine, markOn, markOff]);
+  }, [engine, markOn, markOff, busy]);
 
   const noteOff = useCallback((midi: number, source = `manual:${midi}`) => {
     engine.noteOff(midi, source);
@@ -97,19 +103,20 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    void loadSavedSoundfont().then(async (saved) => {
-      if (!saved || cancelled) return;
+    void loadSavedSoundfont().catch(() => null).then(async (saved) => {
+      if (cancelled) return;
       try {
-        await engine.loadSoundfont(saved.buffer);
+        const name = await restorePiano(engine, saved);
         if (!cancelled) {
-          setSoundfontName(saved.name);
-          setStatus(`已加载本地采样音源：${saved.name}`);
+          activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
+          setSoundfontName(name);
+          setStatus(engine.mode === "samples" ? "实录钢琴已就绪 · Yamaha C5 · 四档力度 · 离线播放" : `已加载本地采样音源：${name}`);
         }
       } catch (error) {
-        if (!cancelled) setStatus(`已保存的音源暂不可用：${error instanceof Error ? error.message : String(error)}。当前使用预览音色。`);
+        if (!cancelled) setStatus(`真实钢琴音源加载失败：${error instanceof Error ? error.message : String(error)}。当前仅能使用备用合成音色。`);
+      } finally {
+        if (!cancelled) setBusy(false);
       }
-    }).catch(() => {
-      // A fresh browser profile may not yet have an IndexedDB database.
     });
     return () => {
       cancelled = true;
@@ -173,7 +180,7 @@ export default function App() {
     setPlaying(false);
     setPreviewUrl("");
     setPreviewType(null);
-    setStatus(`已解析 ${parsed.notes.length.toLocaleString()} 个音符事件 · ${parsed.format === "midi" ? "MIDI" : "MusicXML"} · 统一钢琴演奏`);
+    setStatus(`已解析 ${parsed.notes.length.toLocaleString()} 个音符事件 · ${parsed.format === "midi" ? "MIDI · 已保留原始乐器与鼓轨" : "MusicXML"}`);
   }, [scheduler]);
 
   const importNativePath = async (path: string) => {
@@ -264,6 +271,7 @@ export default function App() {
     try {
       const buffer = await file.arrayBuffer();
       await engine.loadSoundfont(buffer);
+      engine.configureInstruments("unified", "piano"); setPlaybackMode("unified"); setInstrument("piano");
       setSoundfontName(file.name);
       activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
       try {
@@ -273,10 +281,29 @@ export default function App() {
         setStatus(`音源已加载，但本地保存失败，下次启动需重新导入：${String(error)}`);
       }
     } catch (error) {
-      setStatus(`音源加载失败：${error instanceof Error ? error.message : String(error)}。${engine.mode === "soundfont" ? "继续使用原钢琴音源。" : "当前使用合成预览音色。"}`);
+      setStatus(`音源加载失败：${error instanceof Error ? error.message : String(error)}。${engine.mode !== "preview" ? "继续使用当前钢琴音源。" : "当前使用备用合成音色。"}`);
     } finally {
       setBusy(false);
     }
+  };
+
+  const useBuiltInPiano = async () => {
+    setBusy(true); setPosition(playing ? scheduler.position : position); scheduler.stop(); setPlaying(false);
+    setStatus("正在准备 Yamaha C5 实录钢琴……");
+    try {
+      await engine.loadBuiltInPiano();
+      engine.configureInstruments("unified", "piano"); setPlaybackMode("unified"); setInstrument("piano");
+      activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
+      setSoundfontName(pianoConfig.name);
+      try {
+        await clearSavedSoundfont();
+        setStatus("已使用内置 Yamaha C5 实录钢琴 · 四档力度 · 无混响");
+      } catch {
+        setStatus("已使用内置实录钢琴，但未能清除旧音源设置，下次启动可能需再次切换。");
+      }
+    } catch (error) {
+      setStatus(`内置钢琴加载失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally { setBusy(false); }
   };
 
   const playFrom = (seconds: number, playbackSpeed = speed) => {
@@ -334,11 +361,29 @@ export default function App() {
     try { localStorage.setItem("piano-atelier-audiveris", value); } catch { /* optional persistence */ }
   };
 
+  const changeInstrumentation = async (mode: PlaybackMode, selected: InstrumentId, newPosition?: number) => {
+    const pausedAt = newPosition ?? (playing ? scheduler.position : position);
+    scheduler.stop(); setPlaying(false); setPosition(pausedAt); setBusy(true);
+    engine.stopAll(); activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
+    setStatus("正在准备本地乐器音源……");
+    try {
+      if (mode === "multitrack" || selected !== "piano") await engine.prepareInstruments();
+      engine.configureInstruments(mode, selected);
+      setPlaybackMode(mode); setInstrument(selected);
+      setStatus(mode === "multitrack" ? "多轨模式：按 MIDI 原始乐器编号与鼓轨演奏；键盘使用所选试听乐器。" : `统一乐器：${INSTRUMENTS.find((item) => item.id === selected)!.name}。点击播放继续。`);
+    } catch (error) {
+      setStatus(`乐器切换失败：${error instanceof Error ? error.message : String(error)}。保留原来的演奏设置。`);
+    } finally { setBusy(false); }
+  };
+
+  const tracks = [...new Map(score.notes.map((note) => [note.track ?? 0, note])).values()].sort((a, b) => (a.track ?? 0) - (b.track ?? 0));
+
   const shiftOctave = (amount: number) => {
     setBaseMidi((current) => Math.max(21, Math.min(108 - KEYBOARD_CODES.length + 1, current + amount * 12)));
   };
 
-  const soundMode = engine.mode === "soundfont" ? "采样钢琴" : "合成预览音色";
+  const pianoMode = engine.mode === "samples" ? "Yamaha C5 实录钢琴" : engine.mode === "soundfont" ? "本地 SoundFont" : "备用合成音色";
+  const soundMode = playbackMode === "multitrack" ? "多轨 · 本地多乐器音源" : instrument === "piano" ? pianoMode : INSTRUMENTS.find((item) => item.id === instrument)!.name;
 
   return (
     <div className="app-shell">
@@ -388,11 +433,14 @@ export default function App() {
               <span><Check size={12} /> MXL</span>
               <span><Settings2 size={12} /> PDF / 图片（可选）</span>
             </div>
-            <p className="hint-text">MIDI / MusicXML / MXL 可直接演奏。本版以钢琴为主。</p>
+            <p className="hint-text">MIDI 可按原始乐器多轨演奏。MusicXML / MXL 也可统一更换乐器。</p>
           </div>
 
           <div className="sidebar-section">
             <div className="section-label">钢琴音源</div>
+            <button className="primary-button full-width" type="button" onClick={() => void useBuiltInPiano()} disabled={busy}>
+              <Piano size={16} /> 使用内置实录钢琴
+            </button>
             <button className="secondary-button full-width" type="button" onClick={() => soundfontInputRef.current?.click()} disabled={busy}>
               <Headphones size={16} /> 加载 SoundFont
             </button>
@@ -403,15 +451,15 @@ export default function App() {
               accept=".sf2,.sf3,.dls"
               onChange={(event) => void importSoundfont(event)}
             />
-            <div className={`soundfont-card ${engine.mode === "soundfont" ? "loaded" : ""}`}>
+            <div className={`soundfont-card ${engine.mode !== "preview" ? "loaded" : ""}`}>
               <div className="soundfont-icon"><AudioLines size={16} /></div>
               <div className="soundfont-copy">
-                <strong>{soundfontName || "预览合成音色"}</strong>
-                <span>{engine.mode === "soundfont" ? "本地采样音源已加载" : "导入 SF2 / SF3 / DLS 获得真实钢琴音色"}</span>
+                <strong>{soundfontName || (busy ? "正在加载真实钢琴……" : "备用合成音色")}</strong>
+                <span>{engine.mode === "samples" ? "立体声实录 · 四档力度 · 无混响" : engine.mode === "soundfont" ? `本地音源 · ${engine.pianoName}` : "采样尚未就绪，当前音色不是真实钢琴"}</span>
               </div>
-              <span className={`status-dot ${engine.mode === "soundfont" ? "green" : ""}`} />
+              <span className={`status-dot ${engine.mode !== "preview" ? "green" : ""}`} />
             </div>
-            <p className="hint-text">音源保存在本地。项目不擅自捆绑可能有授权限制的大型音色库。</p>
+            <p className="hint-text">内置 Salamander Grand Piano · Alexander Holm · CC BY 3.0。采样全部在本地，也可导入自己的 SoundFont。<a href={`${import.meta.env.BASE_URL}piano-samples/ATTRIBUTION.md`} target="_blank" rel="noreferrer">音源署名与授权</a></p>
           </div>
 
           <div className="sidebar-section omr-section">
@@ -439,7 +487,7 @@ export default function App() {
             <div>
               <div className="eyebrow">MUSIC WORKSPACE / 01</div>
               <h1>演奏工作台</h1>
-              <p>导入乐谱，解析音符事件，并通过本地钢琴音源自动演奏。</p>
+              <p>导入乐谱，使用本地实录钢琴或多乐器音源离线演奏。</p>
             </div>
             <div className="heading-badges">
               <span className="badge"><span className="badge-dot" /> {soundMode}</span>
@@ -460,6 +508,18 @@ export default function App() {
               </div>
             </div>
             <div className="track-actions">
+              <button className="secondary-button compact" type="button" disabled={busy} onClick={() => {
+                setBusy(true);
+                void (async () => {
+                  try {
+                    const response = await fetch(bandDemoUrl);
+                    if (!response.ok) throw new Error("本地多轨演示文件缺失。");
+                    loadParsedScore("band-demo.mid", await response.arrayBuffer());
+                    await changeInstrumentation("multitrack", instrument, 0);
+                  } catch (error) { setStatus(`演示加载失败：${String(error)}`); }
+                  finally { setBusy(false); }
+                })();
+              }}>多轨演示</button>
               <button className="secondary-button compact" type="button" onClick={() => void openScore()} disabled={busy}><Upload size={15} /> 替换乐谱</button>
               <button className="icon-button" type="button" title="恢复演示旋律" onClick={() => { stopPlayback(); setScore(DEMO_SCORE); setStatus("已恢复内置演示旋律"); }}><RotateCcw size={16} /></button>
             </div>
@@ -511,6 +571,28 @@ export default function App() {
             </div>
           </section>
 
+          <section className="instrument-panel" aria-label="乐器与音轨">
+            <div className="instrument-controls">
+              <label>播放模式
+                <select aria-label="播放模式" value={playbackMode} disabled={busy} onChange={(event) => void changeInstrumentation(event.target.value as PlaybackMode, instrument)}>
+                  <option value="unified">统一乐器 · 整首同一种音色</option>
+                  <option value="multitrack">多轨演奏 · 匹配 MIDI 原始乐器</option>
+                </select>
+              </label>
+              <label>{playbackMode === "unified" ? "全曲乐器 / 键盘试听" : "键盘试听乐器"}
+                <select aria-label="演奏乐器" value={instrument} disabled={busy} onChange={(event) => void changeInstrumentation(playbackMode, event.target.value as InstrumentId)}>
+                  {INSTRUMENTS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </label>
+              <span className="muted small">MuseScore General · 本地采样 · 无混响 · <a href={`${import.meta.env.BASE_URL}instruments/LICENSE.md`} target="_blank" rel="noreferrer">MIT 许可</a></span>
+            </div>
+            {playbackMode === "multitrack" && <div className="track-list">
+              {score.format !== "midi" && <p className="hint-text">当前 MusicXML 解析器不读取配器，各声部默认钢琴；可切换统一乐器。</p>}
+              {tracks.map((note) => <div key={note.track ?? 0}><span>{note.part || `音轨 ${(note.track ?? 0) + 1}`}</span><strong>{instrumentLabel(note)}</strong><span>{score.notes.filter((n) => n.track === note.track).length} 个音符</span></div>)}
+            </div>}
+            {instrument === "drums" && <p className="hint-text">鼓组按 GM 鼓键位演奏：C2 底鼓、D2 军鼓、F♯2 闭镲。统一鼓组模式直接使用原音高作为鼓键，不自动生成节奏。</p>}
+          </section>
+
           <ScoreTimeline score={score} position={position} activeNotes={activeNotes} onSeek={seek} />
 
           <section className="keyboard-panel">
@@ -536,7 +618,7 @@ export default function App() {
 
           <footer className="statusbar">
             <div className="status-left" role="status" title={status}><span className={`status-dot ${busy ? "amber" : "green"}`} />{status}</div>
-            <div className="status-right"><span>{isTauri() ? "Windows 桌面版" : "浏览器开发模式"}</span><span className="status-divider" /><span>{engine.mode === "soundfont" ? "SoundFont Engine" : "Preview Synth"}</span></div>
+            <div className="status-right"><span>{isTauri() ? "Windows 桌面版" : "浏览器开发模式"}</span><span className="status-divider" /><span>{playbackMode === "multitrack" || instrument !== "piano" ? "Offline Instrument Bank" : engine.mode === "samples" ? "Sampled Grand Piano" : engine.mode === "soundfont" ? "SoundFont Engine" : "Preview Synth"}</span></div>
           </footer>
         </main>
       </div>

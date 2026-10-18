@@ -41,3 +41,13 @@ export async function loadSavedSoundfont(): Promise<StoredSoundfont | null> {
     request.onerror = () => { db.close(); reject(request.error ?? new Error("读取本地音源失败。")); };
   });
 }
+
+export async function clearSavedSoundfont(): Promise<void> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).delete(SOUNDFONT_KEY);
+    transaction.oncomplete = () => { db.close(); resolve(); };
+    transaction.onabort = transaction.onerror = () => { db.close(); reject(transaction.error ?? new Error("无法清除本地音源设置。")); };
+  });
+}

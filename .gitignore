@@ -8,3 +8,5 @@ src-tauri/gen/
 .playwright-cli/
 output/
 public/spessasynth_processor.min.js
+public/piano-samples/
+public/instruments/

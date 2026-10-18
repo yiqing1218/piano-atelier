@@ -14,8 +14,8 @@ export default function ScoreTimeline({ score, position, activeNotes, onSeek }: 
   const width = Math.max(1000, Math.min(48000, duration * 110));
   const lowestNote = score.notes.reduce((lowest, note) => Math.min(lowest, note.midi), 108);
   const highestNote = score.notes.reduce((highest, note) => Math.max(highest, note.midi), 21);
-  const minMidi = Math.max(21, lowestNote - 2);
-  const maxMidi = Math.min(108, highestNote + 2);
+  const minMidi = Math.max(0, lowestNote - 2);
+  const maxMidi = Math.min(127, highestNote + 2);
   const range = Math.max(12, maxMidi - minMidi + 1);
   const height = Math.max(190, range * 5.5);
   const shownNotes = score.notes.slice(0, 3500);

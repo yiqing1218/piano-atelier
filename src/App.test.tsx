@@ -3,27 +3,80 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-const audio = vi.hoisted(() => ({ on: vi.fn(), off: vi.fn(), stop: vi.fn() }));
+const audio = vi.hoisted(() => ({ on: vi.fn(), off: vi.fn(), stop: vi.fn(), builtin: vi.fn(), clear: vi.fn(), configure: vi.fn(), instruments: vi.fn() }));
 const native = vi.hoisted(() => ({ enabled: false, invoke: vi.fn(), open: vi.fn() }));
 vi.mock("@tauri-apps/api/core", () => ({ isTauri: () => native.enabled, invoke: native.invoke }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: native.open }));
 vi.mock("./lib/audio/PianoEngine", () => ({ PianoEngine: class {
   mode = "preview"; prepare = async () => {}; noteOn = audio.on; noteOff = audio.off; stopAll = audio.stop;
+  loadBuiltInPiano = audio.builtin;
+  configureInstruments = audio.configure; prepareInstruments = audio.instruments;
+  stopPlayback = () => {};
   get currentTime() { return performance.now() / 1000; }
 } }));
-vi.mock("./lib/storage/soundfontStore", () => ({ loadSavedSoundfont: async () => null, saveSoundfont: async () => {} }));
+vi.mock("./lib/storage/soundfontStore", () => ({ loadSavedSoundfont: async () => null, saveSoundfont: async () => {}, clearSavedSoundfont: audio.clear }));
 import App from "./App";
 let host: HTMLDivElement, root: ReturnType<typeof createRoot>;
 beforeEach(async () => {
   vi.useFakeTimers(); vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   audio.on.mockReset().mockResolvedValue(undefined); audio.off.mockReset(); audio.stop.mockReset();
+  audio.builtin.mockReset().mockResolvedValue(undefined); audio.clear.mockReset().mockResolvedValue(undefined);
+  audio.configure.mockReset(); audio.instruments.mockReset().mockResolvedValue(undefined);
   native.enabled = false; native.invoke.mockReset(); native.open.mockReset();
   localStorage.setItem("piano-atelier-audiveris", "C:\\Tools\\Audiveris.exe");
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   HTMLButtonElement.prototype.setPointerCapture = vi.fn();
   await act(async () => root.render(<App />));
 });
+it("offers both playback modes, prepares the offline bank, and applies the selected instrument", async () => {
+  const mode = host.querySelector('[aria-label="播放模式"]') as HTMLSelectElement;
+  const instrument = host.querySelector('[aria-label="演奏乐器"]') as HTMLSelectElement;
+  expect(instrument.options).toHaveLength(6);
+  await click('[title="播放"]');
+  await act(async () => vi.advanceTimersByTimeAsync(620));
+  await click('[title="停止"]');
+  await act(async () => { instrument.value = "bass"; instrument.dispatchEvent(new Event("change", { bubbles: true })); });
+  expect((host.querySelector('[aria-label="播放进度"]') as HTMLInputElement).value).toBe("0");
+  expect(audio.instruments).toHaveBeenCalledOnce();
+  expect(audio.configure).toHaveBeenLastCalledWith("unified", "bass");
+  await act(async () => { mode.value = "multitrack"; mode.dispatchEvent(new Event("change", { bubbles: true })); });
+  expect(audio.configure).toHaveBeenLastCalledWith("multitrack", "bass");
+  expect(host.textContent).toContain("当前 MusicXML 解析器不读取配器");
+  expect(host.querySelectorAll('.piano-key')).toHaveLength(88);
+});
+it("keeps the previous instrument selection when its bank cannot load", async () => {
+  audio.instruments.mockRejectedValueOnce(new Error("missing local bank"));
+  const instrument = host.querySelector('[aria-label="演奏乐器"]') as HTMLSelectElement;
+  await act(async () => { instrument.value = "violin"; instrument.dispatchEvent(new Event("change", { bubbles: true })); });
+  expect(audio.configure).not.toHaveBeenCalled();
+  expect(instrument.value).toBe("piano");
+  expect(host.querySelector('[role="status"]')?.textContent).toContain("missing local bank");
+});
+it("loads the bundled six-track demo from a local asset and selects multitrack playback", async () => {
+  const bytes = Uint8Array.from(readFileSync("tests/fixtures/band-demo.mid")).buffer;
+  const fetcher = vi.fn(async (_url: string) => ({ ok: true, arrayBuffer: async () => bytes }));
+  vi.stubGlobal("fetch", fetcher);
+  const button = [...host.querySelectorAll("button")].find((button) => button.textContent === "多轨演示")!;
+  await click('[title="播放"]');
+  await act(async () => vi.advanceTimersByTimeAsync(620));
+  await click('[title="暂停"]');
+  await act(async () => { button.click(); });
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(fetcher.mock.calls[0]?.[0]).not.toMatch(/^data:|^https?:/);
+  expect(host.querySelectorAll(".track-list > div")).toHaveLength(6);
+  expect(host.querySelector(".track-details")?.textContent).toContain("24 个音符");
+  expect(audio.configure).toHaveBeenLastCalledWith("multitrack", "piano");
+  expect((host.querySelector('[aria-label="播放进度"]') as HTMLInputElement).value).toBe("0");
+});
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+it("automatically prepares real piano recordings on startup and offers an explicit restore button", async () => {
+  expect(audio.builtin).toHaveBeenCalledOnce();
+  const button = [...host.querySelectorAll("button")].find((button) => button.textContent?.includes("使用内置实录钢琴"));
+  expect(button).toBeDefined();
+  await act(async () => { button!.click(); });
+  expect(audio.builtin).toHaveBeenCalledTimes(2);
+  expect(audio.clear).toHaveBeenCalledOnce();
+});
 function key(type: string, code: string, target: EventTarget = window, options = {}) {
   const event = new KeyboardEvent(type, { code, bubbles: true, cancelable: true, ...options });
   act(() => { target.dispatchEvent(event); }); return event;

@@ -14,6 +14,7 @@ function setup() {
     },
     noteOff: (midi: number, id = String(midi)) => { sounding.delete(id); events.push(`off:${midi}`); },
     stopAll: () => sounding.clear(),
+    stopPlayback: () => { for (const id of sounding.keys()) if (id.startsWith("playback:")) sounding.delete(id); },
   };
   const callbacks: PlaybackCallbacks = {
     onPosition: vi.fn(), onNoteOn: vi.fn(), onNoteOff: vi.fn(), onEnd: vi.fn(), onError: vi.fn(),
@@ -26,6 +27,15 @@ const note = (id: string, midi: number, start: number, duration: number): NoteEv
 describe("transport scheduling", () => {
   beforeEach(() => { vi.useFakeTimers(); vi.stubGlobal("window", globalThis); });
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+
+  it("passes instrument and percussion metadata unchanged when seeking into a held note", async () => {
+    const s = setup();
+    const on = vi.spyOn(s.engine, "noteOn");
+    const drum = { ...note("drum", 36, 0, 2), track: 9, program: 0, channel: 9, percussion: true };
+    await s.scheduler.start([drum], 0.5, 1, s.callbacks);
+    expect(on).toHaveBeenCalledWith(36, 0.8, expect.stringMatching(/^playback:/), drum);
+    s.scheduler.stop();
+  });
 
   it("keeps overlapping instances of a repeated pitch alive independently", async () => {
     const s = setup();
