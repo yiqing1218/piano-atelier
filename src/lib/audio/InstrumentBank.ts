@@ -1,5 +1,5 @@
 import { WorkletSynthesizer } from "spessasynth_lib";
-import type { InstrumentPatch } from "./instruments";
+import { clampVolume, type InstrumentPatch } from "./instruments";
 
 /** Independent channels keep tracks, percussion and manual audition isolated. */
 export class InstrumentBank {
@@ -23,7 +23,13 @@ export class InstrumentBank {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       await Promise.race([
-        (async () => { await synth.soundBankManager.addSoundBank(await response.arrayBuffer(), "bundled-gm"); await synth.isReady; })(),
+        (async () => {
+          await synth.soundBankManager.addSoundBank(await response.arrayBuffer(), "bundled-gm");
+          const recorded = await fetch(`${import.meta.env.BASE_URL}instruments/Recorded-Orchestra.sf2`);
+          if (!recorded.ok) throw new Error("本地二胡/管弦录音库缺失，请重新构建应用。");
+          await synth.soundBankManager.addSoundBank(await recorded.arrayBuffer(), "recorded-orchestra");
+          await synth.isReady;
+        })(),
         new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("多乐器音源加载超时。")), 60000); }),
       ]);
       synth.setSystemParameter("effectsEnabled", false);
@@ -33,26 +39,30 @@ export class InstrumentBank {
     finally { if (timer !== undefined) clearTimeout(timer); }
   }
 
-  channel(patch: InstrumentPatch, owner: string): number {
+  channel(patch: InstrumentPatch, owner: string, volume = 1): number {
     if (!this.synth) throw new Error("多乐器音源尚未准备完成。");
-    const key = `${owner}:${patch.percussion}:${patch.program}`;
+    const key = `${owner}:${patch.bankMSB ?? 0}:${patch.percussion}:${patch.program}`;
     const existing = this.routes.get(key);
     if (existing !== undefined) return existing;
     // Allocate per-track channels, independent of source channel numbers.
     const channel = this.routes.size;
     while (this.synth.midiChannels.length <= channel) this.synth.addNewChannel();
-    const preset = this.synth.presetList.find((p) => p.program === patch.program && Boolean(p.isDrum || p.isGMGSDrum) === patch.percussion && (patch.percussion || p.bankMSB === 0));
+    const preset = this.synth.presetList.find((p) => p.program === patch.program && Boolean(p.isDrum || p.isGMGSDrum) === patch.percussion && (patch.percussion || p.bankMSB === (patch.bankMSB ?? 0)));
     if (!preset) throw new Error(`音源不含 ${patch.percussion ? "鼓组" : "乐器"} Program ${patch.program + 1}。`);
     this.synth.controllerChange(channel, 0, preset.bankMSB);
     this.synth.controllerChange(channel, 32, preset.bankLSB);
     this.synth.midiChannels[channel].setDrums(patch.percussion);
     this.synth.programChange(channel, patch.program);
+    this.synth.controllerChange(channel, 11, Math.round(clampVolume(volume) * 127));
     this.routes.set(key, channel);
     return channel;
   }
 
   noteOn(channel: number, midi: number, velocity: number): void { this.synth!.noteOn(channel, midi, velocity); }
   noteOff(channel: number, midi: number): void { this.synth?.noteOff(channel, midi); }
+  setTrackVolume(track: number, volume: number): void {
+    for (const [key, channel] of this.routes) if (key.startsWith(`playback:${track}:`)) this.synth?.controllerChange(channel, 11, Math.round(clampVolume(volume) * 127));
+  }
   stopPlayback(): void {
     for (const [key, channel] of this.routes) if (key.startsWith("playback:")) this.synth?.controllerChange(channel, 120, 0);
   }

@@ -66,7 +66,7 @@ export class SampledPiano {
     return loading;
   }
 
-  async noteOn(midi: number, velocity: number, stillHeld: () => boolean = () => true, owner = ""): Promise<SampleVoice | null> {
+  async noteOn(midi: number, velocity: number, stillHeld: () => boolean = () => true, owner = "", output = this.output): Promise<SampleVoice | null> {
     const sample = selectPianoSample(midi, velocity);
     const buffer = await this.load(sample.file);
     if (!stillHeld()) return null;
@@ -76,7 +76,7 @@ export class SampledPiano {
     source.playbackRate.value = sample.rate;
     // Retain the sample's real attack/decay and stereo image, only trim overall level.
     gain.gain.setValueAtTime(0.65 * Math.min(1.25, Math.sqrt(velocity * 127 / sample.recordedVelocity)), this.context.currentTime);
-    source.connect(gain); gain.connect(this.output);
+    source.connect(gain); gain.connect(output);
     let released = false, ended = false;
     source.onended = () => { ended = true; this.active.delete(voice); source.disconnect(); gain.disconnect(); };
     source.start(this.context.currentTime);

@@ -174,3 +174,22 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .track-list { margin-top: 14px; max-height: 220px; overflow-y: auto; }
 .track-list > div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 12px; }
 .track-list > div > * { flex: 1; overflow-wrap: anywhere; }
+.instrument-panel a { color: var(--blue); }
+.track-list { max-height: 340px; }
+.track-list .mixer-row { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.3fr) minmax(170px, 1fr); align-items: center; }
+.mixer-name small { display: block; color: var(--muted); padding-top: 5px; font-weight: 400; }
+.mixer-row select, .song-library select { background: var(--panel-soft); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 7px; min-width: 0; width: 100%; }
+.mixer-volume, .master-volume { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.mixer-volume input, .master-volume input { accent-color: var(--accent); min-width: 40px; width: 100%; }
+.master-volume { width: 200px; flex-shrink: 0; }
+.mixer-volume span, .master-volume span { min-width: 34px; text-align: right; }
+.export-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.export-controls progress { accent-color: var(--accent); max-width: 180px; }
+.library-scroll { max-height: 260px; overflow-y: auto; }
+.library-row { display: flex; align-items: center; border: 1px solid transparent; border-radius: 7px; margin-bottom: 5px; }
+.library-row.selected { background: var(--panel-hover); border-color: var(--accent); }
+.library-row button { border: 0; background: transparent; text-align: left; min-width: 0; font-size: 11px; padding: 9px; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.library-row small { display: block; color: var(--muted); margin-top: 5px; font-size: 9px; }
+.library-row .library-delete { flex: 0 0 30px; height: 32px; padding: 0; overflow: visible; text-overflow: clip; text-align: center; font-size: 18px; color: var(--muted); }
+.library-delete:hover { color: #ffa3a3; }
+@media(max-width:1200px) { .transport-card { flex-wrap: wrap; } .master-volume { width: 150px; } }

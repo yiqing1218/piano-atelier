@@ -25,6 +25,7 @@
     "lucide-react": "^0.468.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "spessasynth_core": "4.3.22",
     "spessasynth_lib": "^4.3.0"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.4.1",
+    "@wasm-audio-decoders/flac": "0.2.11",
     "fake-indexeddb": "^6.2.6",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",

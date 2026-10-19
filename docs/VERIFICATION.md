@@ -93,3 +93,22 @@ npm run dev
 - 额外检查：多轨播放停止后 0.25 秒测得输出 RMS 0；导入自有合成测试 SF2 后多轨模式仍可播放，恢复 Yamaha C5 后钢琴模式正确恢复。此检查没有控制台错误。
 - 记录：`output/playwright/multi-instrument-smoke.cjs`、`multi-instrument-demo-smoke.cjs`；截图 `multi-instrument-final.png`，均为本地检查记录，不是运行依赖。
 - 仍未认证：大型复杂 MIDI 的负载/精度、GM 之外的 GS/XG 音色库、MIDI 控制器/弯音表达、MusicXML 配器、原生桌面/干净 Windows 离线安装和真实 Audiveris 识谱。Rust 源码未改动，当前缺 Rust/Cargo 与 MSVC/Windows SDK，无法补做桌面构建。
+
+
+## 曲库、混音器、扩展采样与导出验证（2026-10-18）
+
+新增实录库 83,690,460 字节 / 76 个源录音区域，包含 AliExpress Erhu、VSCO 小号/大号、FreePats 尤克里里，均核验 CC0。源提交及哈希列于 `assets/orchestra/manifest.json`。构建从本地复制，不运行联网获取脚本。完整许可见 `INSTRUMENT_SAMPLES_LICENSE.md`。
+
+`npm test`：87 项 / 15 文件通过。新增真实 SF2 PCM 渲染测试、MIDI/RIFF 内容测试、音轨覆盖和持音音量测试、原生保存桥接/取消测试、IndexedDB 去重/持久化/删除、循环策略及 UI 集成测试。
+
+生产 Edge、正式 CSP、仅允许 127.0.0.1 本地请求：
+- 实录二胡、小号、大号、尤克里里均有实际输出，RMS 约 0.00146 / 0.00494 / 0.00193 / 0.00458。仪表只证明发声，不表示主观音质通过。
+- 曲库已有同文件时，重复导入前后条目数相同。独立指定第一轨二胡、第二轨小号及第一轨 30% 音量，刷新后重新从曲库加载，设置保持。
+- 单曲循环真实回到同首的开头；列表循环实际进入另一曲；随机模式在两首时切换到另一曲；删除后列表只剩原曲。显式停止未触发自动切歌。
+- 下载 `recorded-mix.wav`：7 秒、双声道、44.1 kHz PCM16，峰值 6130，RMS 0.023333；下载 `muted-mix.wav`：峰值/RMS 都是 0。同一 UI 导出的 MIDI 已实际保存。
+- 取消 WAV 渲染显示“已取消音频导出”；不虚报成功。页面异常 0，外部请求 0。
+- 记录脚本：`output/playwright/orchestra-smoke.cjs`、`library-export-smoke.cjs`；结果截图 `library-export-final.png`。测试中需要将页面置前并滚动到琴键，避免自动化点击落在可视区外；分析器只接实际 AudioContext，不把已经结束的 OfflineAudioContext 当作实时输出。
+
+`npm run build`：通过，Worker 作为本地 JS 输出；完整音源和许可随 `dist/instruments/` 分发。`cargo check`：命令不存在，无法检查新增 Rust 保存实现；MSVC/SDK、原生保存及干净 Windows 安装仍未验证。原生路径只验证了 JavaScript 桥接参数及取消行为。
+
+曲库仍无备份/迁移机制；原始字节不同的转码/重导出不会做“相似音乐”去重。浏览器预览需要本地服务器可达，禁止互联网请求与禁止 localhost 的浏览器离线开关不是同一个检查。大型曲库和十分钟上限的峰值内存/耗时未做压力认证。

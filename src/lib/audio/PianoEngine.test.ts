@@ -5,7 +5,8 @@ vi.mock("spessasynth_lib", () => ({
   WorkletSynthesizer: class {
     isReady = Promise.resolve();
     presetList = [0, 25, 33, 40, 48].map((program) => ({ bankMSB: 0, bankLSB: 0, program, isDrum: false, isGMGSDrum: false, name: "Test instrument" }))
-      .concat([{ bankMSB: 128, bankLSB: 0, program: 0, isDrum: true, isGMGSDrum: true, name: "Drums" }]);
+      .concat([{ bankMSB: 128, bankLSB: 0, program: 0, isDrum: true, isGMGSDrum: true, name: "Drums" }])
+      .concat([24, 56, 58, 110].map((program) => ({ bankMSB: 1, bankLSB: 0, program, isDrum: false, isGMGSDrum: false, name: "CC0 recording" })));
     midiChannels = Array.from({ length: 16 }, () => ({ setDrums: vi.fn() }));
     addNewChannel() { this.midiChannels.push({ setDrums: vi.fn() }); }
     soundBankManager = { addSoundBank: vi.fn(async (buffer: ArrayBuffer) => {
@@ -84,6 +85,29 @@ it("allocates extra channels beyond sixteen instead of overwriting another track
   engine.noteOff(60, "playback:17");
   expect(synth.noteOff).toHaveBeenCalledWith(17, 60);
   expect(synth.noteOff).not.toHaveBeenCalledWith(0, 60);
+});
+it("applies an erhu override only to its track and changes volume on held synth notes", async () => {
+  const engine = new PianoEngine();
+  engine.configureInstruments("multitrack", "piano", { 0: { instrument: "erhu", volume: 0.5 } });
+  await engine.noteOn(62, 0.8, "playback:0", { track: 0, program: 0 });
+  await engine.noteOn(62, 0.8, "playback:1", { track: 1, program: 33 });
+  const synth = banks.instances[0];
+  expect(synth.programChange.mock.calls).toEqual([[0, 110], [1, 33]]);
+  expect(synth.controllerChange).toHaveBeenCalledWith(0, 0, 1);
+  expect(synth.controllerChange).toHaveBeenCalledWith(0, 11, 64);
+  engine.setTrackVolume(0, 0);
+  expect(synth.controllerChange).toHaveBeenLastCalledWith(0, 11, 0);
+  expect(synth.noteOff).not.toHaveBeenCalled();
+});
+it("changes master and sampled-piano track gain without changing pitch or triggering a new note", async () => {
+  const engine = new PianoEngine(); await engine.loadBuiltInPiano();
+  await engine.noteOn(60, 0.8, "playback:0", { track: 0 });
+  const voiceGain = sampleSources[0].connect.mock.calls[0][0];
+  const trackOutput = voiceGain.connect.mock.calls[0][0], master = trackOutput.connect.mock.calls[0][0];
+  engine.setTrackVolume(0, 0.25); expect(trackOutput.gain.value).toBe(0.25);
+  engine.setMasterVolume(0); expect(master.gain.value).toBe(0);
+  engine.setMasterVolume(0.5); expect(master.gain.value).toBe(0.36);
+  expect(sampleSources).toHaveLength(1);
 });
 class Context {
   currentTime = 0; destination = {}; state = suspended ? "suspended" : "running";

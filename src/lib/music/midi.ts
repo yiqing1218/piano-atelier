@@ -25,6 +25,7 @@ export function parseMidiFile(fileName: string, buffer: ArrayBuffer): ScoreDocum
         channel: track.channel,
         percussion: track.instrument.percussion,
         instrumentName: track.instrument.name,
+        bankMSB: Math.round(([...(track.controlChanges[0] ?? [])].reverse().find((cc) => cc.time <= note.time)?.value ?? 0) * 127),
       });
     });
   });
@@ -33,7 +34,7 @@ export function parseMidiFile(fileName: string, buffer: ArrayBuffer): ScoreDocum
   const duration = notes.reduce((max, note) => Math.max(max, note.start + note.duration), 0);
   const tempo = midi.header.tempos[0]?.bpm ?? 120;
   if (midi.tracks.some((track) => Object.keys(track.controlChanges).length || track.pitchBends.length)) {
-    warnings.add("当前保留音符、乐器编号和鼓轨；暂不还原 MIDI 音量、声像、踏板等控制器及弯音、GS/XG 扩展音色库。");
+    warnings.add("已读取音符、GM 乐器及内置录音库编号；原文件的音量、声像、踏板等控制器、弯音及其他 GS/XG 扩展库暂未还原，可用混音器重新设置音量。");
   }
 
   if (!notes.length) throw new Error("MIDI 文件中没有可播放的音符事件。");

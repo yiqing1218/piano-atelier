@@ -9,3 +9,8 @@ await mkdir("public/instruments", { recursive: true });
 await copyFile(source, "public/instruments/MuseScore_General.sf3");
 await copyFile("assets/soundfonts/LICENSE.md", "public/instruments/LICENSE.md");
 console.log(`[Piano Atelier] Bundled offline GM instruments: ${bytes.length} bytes (MIT)`);
+const manifest = JSON.parse(await readFile("assets/orchestra/manifest.json", "utf8"));
+const recorded = await readFile("assets/orchestra/Recorded-Orchestra.sf2");
+if (createHash("sha256").update(recorded).digest("hex") !== manifest.sha256) throw new Error("Recorded orchestra checksum mismatch");
+for (const file of ["Recorded-Orchestra.sf2", "manifest.json", "erhu-LICENSE.txt", "vsco-LICENSE.txt", "ukulele-LICENSE.txt"]) await copyFile(`assets/orchestra/${file}`, `public/instruments/${file}`);
+console.log(`[Piano Atelier] Bundled verified CC0 recordings: ${recorded.length} bytes`);

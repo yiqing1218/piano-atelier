@@ -48,3 +48,12 @@ You are continuing Piano Atelier. Read `AGENTS.md` and all files in `docs/` firs
 - Verified MIT MuseScore General asset, bundled bytes/license with a SHA-256 check, no runtime network or effects.
 - Added instrument routing, mode/error UI, six-track demo, format-0 program-change and full-range fixtures/tests.
 - Updated acceptance and verification records. MIDI CC/pitch bend, GS/XG banks, MusicXML orchestration and native Windows certification remain outside this revision.
+
+
+## Expanded instruments / mixer / library / export revision — 2026-10-18
+- Completed 128-GM catalog plus four verified CC0 recorded choices; pinned upstream source mappings, offline bank, per-file provenance and hash validation.
+- Completed track overrides, independent input/synth channels, per-track/master volume and sample/native-font routing.
+- Completed SHA-256-deduplicated local song database, delete/load, per-song mixes and three loop policies plus once.
+- Completed real WAV and MIDI export, worker rendering, cancellation, browser downloads, and native save bridge/capability.
+- Verification: 87 automated tests, production build, real browser input/audio/library/reload/playlist/download checks. See acceptance and verification records.
+- Required later: Rust/Cargo + MSVC/SDK installation and actual native compilation/save/installer tests; library backup/migration; more explicitly licensed Chinese instruments and expressive controllers.

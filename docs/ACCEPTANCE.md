@@ -106,3 +106,20 @@ This user-requested scope supersedes the initial piano-only restrictions above.
 - [ ] MIDI CC (volume/pan/pedal), pitch bend and GS/XG extended banks are not restored; parser warns when detected controller/pitch-bend events are omitted.
 - [ ] MusicXML orchestration is not parsed; its parts default to piano in multitrack mode and can be globally revoiced in unified mode.
 - [ ] Native Windows executable/installer and real Audiveris output remain unverified for the previously documented environment blockers. No Rust code changed.
+
+
+## Expanded instruments, track mixer, library and exports — 2026-10-18
+- [x] 133 grouped instrument options: 128 GM, four CC0 recorded variants, drums. Includes erhu, recorded trumpet/tuba/ukulele and the existing C5 piano.
+- [x] Every track can independently select an instrument or restore Automatic, including converting a drum track to a pitched instrument or vice versa.
+- [x] Master and per-track volume, including 0 mute, affect active notes and current export settings; changes to instruments pause and preserve position.
+- [x] Imports enter a local IndexedDB song library automatically after successful parsing. SHA-256 content keys deduplicate identical/renamed files atomically. Parse failures are not stored. Quota/database errors report failure without claiming storage succeeded.
+- [x] Song selection, deletion, saved track mixes and restoration across page reload. Deletion affects local records only.
+- [x] Once, list loop, shuffle and single-song repeat. Real browser verified natural-end restart/switch for each loop mode.
+- [x] MIDI export with timing/speed, per-track bank/program and volume; custom-bank metadata can be reimported. MIDI never claims to embed the sampled sound.
+- [x] WAV export using actual local samples/fonts, current mix/speed, stereo 44.1 kHz PCM16; progress, cancellation, five-second tail and ten-minute duration guard.
+- [x] Tauri save bridge and cancellation handling implemented; frontend bridge tests cover raw bytes and Chinese paths. Native execution is not certified.
+- [x] `npm test`: 87 passed / 15 files. `npm run build`: passed. Runtime external requests: 0 in production Edge checks.
+- [x] Production Edge: actual erhu/trumpet/tuba/ukulele output; six independent track selectors; different erhu/trumpet track assignments and 30% volume persisted across reload; duplicate import preserved row count; deletion succeeded.
+- [x] Actual downloaded WAV: 7 seconds, 2 channels, 44.1 kHz, peak 6130, RMS ~0.0233. At master 0, the downloaded WAV peak/RMS are exactly zero. Cancelled rendering produced cancellation status, not success.
+- [ ] `cargo check`: cannot execute, `cargo` command is absent. Windows desktop/native save dialog/installer and Audiveris remain unverified. This revision adds Rust export code; it has not been compiled here.
+- [ ] Guqin/guzheng/pipa/sheng/hulusi/dizi/xiao-specific sample integration, complete expressive articulations and heavy-library performance certification remain outside this release. They are not replaced by misleading GM names.

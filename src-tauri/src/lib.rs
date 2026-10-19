@@ -9,6 +9,41 @@ fn read_local_file(path: String) -> Result<Vec<u8>, String> {
     fs::read(&path).map_err(|error| format!("读取本地文件失败：{error}"))
 }
 
+fn decode_export_path(encoded: &str) -> Result<String, String> {
+    let mut bytes = Vec::with_capacity(encoded.len());
+    let mut chars = encoded.as_bytes().iter().copied();
+    while let Some(byte) = chars.next() {
+        if byte == b'%' {
+            let high = chars.next().and_then(|c| (c as char).to_digit(16));
+            let low = chars.next().and_then(|c| (c as char).to_digit(16));
+            match (high, low) {
+                (Some(h), Some(l)) => bytes.push((h * 16 + l) as u8),
+                _ => return Err("导出路径编码无效。".into()),
+            }
+        } else { bytes.push(byte); }
+    }
+    String::from_utf8(bytes).map_err(|_| "导出路径不是有效的 UTF-8。".into())
+}
+
+#[tauri::command]
+fn write_export_file(request: tauri::ipc::Request<'_>) -> Result<(), String> {
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("导出内容必须是二进制数据。".into());
+    };
+    let encoded = request.headers().get("x-export-path")
+        .and_then(|header| header.to_str().ok()).ok_or("缺少导出路径。")?;
+    let path = PathBuf::from(decode_export_path(encoded)?);
+    if !path.is_absolute() { return Err("请选择完整的导出文件路径。".into()); }
+    let extension = path.extension().and_then(|value| value.to_str()).unwrap_or("").to_ascii_lowercase();
+    let valid = match extension.as_str() {
+        "wav" => bytes.len() >= 44 && bytes.starts_with(b"RIFF") && &bytes[8..12] == b"WAVE",
+        "mid" | "midi" => bytes.len() >= 14 && bytes.starts_with(b"MThd"),
+        _ => false,
+    };
+    if !valid || bytes.len() > 120_000_000 { return Err("仅支持有效的 WAV/MIDI，单文件不能超过 120 MB。".into()); }
+    fs::write(&path, bytes).map_err(|error| format!("保存导出文件失败：{error}"))
+}
+
 fn collect_musicxml_files(directory: &Path, results: &mut Vec<PathBuf>) -> Result<(), String> {
     let entries = fs::read_dir(directory).map_err(|error| format!("无法读取识谱输出目录：{error}"))?;
     for entry in entries {
@@ -95,7 +130,7 @@ fn recognize_score(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![read_local_file, recognize_score])
+        .invoke_handler(tauri::generate_handler![read_local_file, recognize_score, write_export_file])
         .run(tauri::generate_context!())
         .expect("error while running Piano Atelier");
 }

@@ -18,6 +18,14 @@ import pianoConfig from "./lib/audio/pianoSamples.json";
 import { INSTRUMENTS, instrumentLabel, type InstrumentId, type PlaybackMode } from "./lib/audio/instruments";
 import type { ScoreDocument } from "./types/music";
 import bandDemoUrl from "../tests/fixtures/band-demo.mid?url&no-inline";
+import InstrumentSelect from "./components/InstrumentSelect";
+import TrackMixer from "./components/TrackMixer";
+import SongLibrary from "./components/SongLibrary";
+import { listSongs, storeSong, deleteSong, saveSongMix, type LibrarySong, type SongMix } from "./lib/storage/songStore";
+import { nextSong, type RepeatMode } from "./lib/music/playlist";
+import { downloadFile, exportMidi } from "./lib/export/musicExport";
+import { renderWav } from "./lib/export/renderWav";
+import type { TrackMixes } from "./lib/audio/instruments";
 
 const DEMO_NOTES = [
   [60, 0.00], [60, 0.45], [67, 0.90], [67, 1.35],
@@ -68,6 +76,14 @@ export default function App() {
   const [speed, setSpeed] = useState(1);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("unified");
   const [instrument, setInstrument] = useState<InstrumentId>("piano");
+  const [trackMixes, setTrackMixes] = useState<TrackMixes>({});
+  const [masterVolume, setMasterVolume] = useState(1);
+  const [library, setLibrary] = useState<LibrarySong[]>([]);
+  const [currentSongId, setCurrentSongId] = useState<string | null>(null);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>("once");
+  const [exportProgress, setExportProgress] = useState<number | null>(null);
+  const exportController = useRef<AbortController | null>(null);
+  const endedRef = useRef<() => void>(() => {});
   const [baseMidi, setBaseMidi] = useState(48);
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set());
   const [status, setStatus] = useState("正在准备本地实录钢琴采样……");
@@ -127,6 +143,19 @@ export default function App() {
   }, [engine, scheduler]);
 
   useEffect(() => {
+    void listSongs().then(setLibrary).catch((error) => setStatus(`曲库读取失败：${String(error)}`));
+    return () => { exportController.current?.abort(); };
+  }, []);
+
+  useEffect(() => {
+    if (!currentSongId) return;
+    const mix: SongMix = { mode: playbackMode, instrument, tracks: trackMixes };
+    setLibrary((items) => items.map((item) => item.id === currentSongId ? { ...item, mix } : item));
+    void saveSongMix(currentSongId, mix)
+      .catch((error) => setStatus(`配器设置保存失败：${String(error)}`));
+  }, [currentSongId, playbackMode, instrument, trackMixes]);
+
+  useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
@@ -172,16 +201,24 @@ export default function App() {
     };
   }, [baseMidi, noteOff, noteOn]);
 
-  const loadParsedScore = useCallback((name: string, buffer: ArrayBuffer) => {
+  const activateScore = useCallback((parsed: ScoreDocument, id: string | null, mix?: SongMix) => {
+    scheduler.stop(); engine.stopAll();
+    activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
+    const settings = mix ?? { mode: playbackMode, instrument, tracks: {} };
+    engine.configureInstruments(settings.mode, settings.instrument, settings.tracks);
+    setPlaybackMode(settings.mode); setInstrument(settings.instrument); setTrackMixes(settings.tracks);
+    setScore(parsed); setCurrentSongId(id); setPosition(0); setPlaying(false); setPreviewUrl(""); setPreviewType(null);
+  }, [scheduler, engine, playbackMode, instrument]);
+
+  const loadParsedScore = useCallback(async (name: string, buffer: ArrayBuffer) => {
     const parsed = parseScoreFile(name, buffer);
-    scheduler.stop();
-    setScore(parsed);
-    setPosition(0);
-    setPlaying(false);
-    setPreviewUrl("");
-    setPreviewType(null);
-    setStatus(`已解析 ${parsed.notes.length.toLocaleString()} 个音符事件 · ${parsed.format === "midi" ? "MIDI · 已保留原始乐器与鼓轨" : "MusicXML"}`);
-  }, [scheduler]);
+    activateScore(parsed, null);
+    try {
+      const result = await storeSong(name, buffer, parsed);
+      setLibrary(await listSongs()); activateScore(result.song.score, result.song.id, result.song.mix);
+      setStatus(`${result.duplicate ? "曲库已有此文件，已打开原曲目" : "已导入并保存到本地曲库"} · ${parsed.notes.length} 个音符`);
+    } catch (error) { setStatus(`乐谱可演奏，但曲库保存失败：${String(error)}`); }
+  }, [activateScore]);
 
   const importNativePath = async (path: string) => {
     const name = fileNameFromPath(path);
@@ -199,7 +236,7 @@ export default function App() {
         });
         const bytes = await invoke<number[]>("read_local_file", { path: outputPath });
         const buffer = new Uint8Array(bytes).buffer as ArrayBuffer;
-        loadParsedScore(fileNameFromPath(outputPath), buffer);
+        await loadParsedScore(fileNameFromPath(outputPath), buffer);
         setStatus(`本地识谱完成：${fileNameFromPath(outputPath)}。请检查识别准确性。`);
       } catch (error) {
         setStatus(`本地识谱失败：${error instanceof Error ? error.message : String(error)}`);
@@ -213,7 +250,7 @@ export default function App() {
     try {
       const bytes = await invoke<number[]>("read_local_file", { path });
       const buffer = new Uint8Array(bytes).buffer as ArrayBuffer;
-      loadParsedScore(name, buffer);
+      await loadParsedScore(name, buffer);
     } catch (error) {
       setStatus(`导入失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -253,7 +290,7 @@ export default function App() {
 
     setBusy(true);
     try {
-      loadParsedScore(file.name, await file.arrayBuffer());
+      await loadParsedScore(file.name, await file.arrayBuffer());
     } catch (error) {
       setStatus(`导入失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -271,7 +308,7 @@ export default function App() {
     try {
       const buffer = await file.arrayBuffer();
       await engine.loadSoundfont(buffer);
-      engine.configureInstruments("unified", "piano"); setPlaybackMode("unified"); setInstrument("piano");
+      engine.configureInstruments("unified", "piano", trackMixes); setPlaybackMode("unified"); setInstrument("piano");
       setSoundfontName(file.name);
       activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
       try {
@@ -292,7 +329,7 @@ export default function App() {
     setStatus("正在准备 Yamaha C5 实录钢琴……");
     try {
       await engine.loadBuiltInPiano();
-      engine.configureInstruments("unified", "piano"); setPlaybackMode("unified"); setInstrument("piano");
+      engine.configureInstruments("unified", "piano", trackMixes); setPlaybackMode("unified"); setInstrument("piano");
       activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
       setSoundfontName(pianoConfig.name);
       try {
@@ -306,24 +343,25 @@ export default function App() {
     } finally { setBusy(false); }
   };
 
-  const playFrom = (seconds: number, playbackSpeed = speed) => {
+  const playFrom = (seconds: number, playbackSpeed = speed, document = score) => {
     setPosition(seconds);
     setPlaying(true);
     setStatus(`正在播放 · ${Math.round(playbackSpeed * 100)}% 速度`);
-    void scheduler.start(score.notes, seconds, playbackSpeed, {
+    void scheduler.start(document.notes, seconds, playbackSpeed, {
       onPosition: setPosition,
       onNoteOn: (midi) => markOn(midi, `playback:${midi}`),
       onNoteOff: (midi) => markOff(`playback:${midi}`),
       onEnd: () => {
         setPlaying(false);
-        setPosition(score.duration);
+        setPosition(document.duration);
         setStatus("播放完成");
+        endedRef.current();
       },
       onError: (error) => {
         setPlaying(false);
         setStatus(`播放失败：${error instanceof Error ? error.message : String(error)}`);
       },
-    }, score.duration);
+    }, document.duration);
   };
 
   const startPlayback = () => {
@@ -361,22 +399,60 @@ export default function App() {
     try { localStorage.setItem("piano-atelier-audiveris", value); } catch { /* optional persistence */ }
   };
 
-  const changeInstrumentation = async (mode: PlaybackMode, selected: InstrumentId, newPosition?: number) => {
+  const changeInstrumentation = async (mode: PlaybackMode, selected: InstrumentId, newPosition?: number, mixes = trackMixes) => {
     const pausedAt = newPosition ?? (playing ? scheduler.position : position);
     scheduler.stop(); setPlaying(false); setPosition(pausedAt); setBusy(true);
     engine.stopAll(); activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
     setStatus("正在准备本地乐器音源……");
     try {
       if (mode === "multitrack" || selected !== "piano") await engine.prepareInstruments();
-      engine.configureInstruments(mode, selected);
-      setPlaybackMode(mode); setInstrument(selected);
+      engine.configureInstruments(mode, selected, mixes);
+      setPlaybackMode(mode); setInstrument(selected); setTrackMixes(mixes);
       setStatus(mode === "multitrack" ? "多轨模式：按 MIDI 原始乐器编号与鼓轨演奏；键盘使用所选试听乐器。" : `统一乐器：${INSTRUMENTS.find((item) => item.id === selected)!.name}。点击播放继续。`);
     } catch (error) {
       setStatus(`乐器切换失败：${error instanceof Error ? error.message : String(error)}。保留原来的演奏设置。`);
     } finally { setBusy(false); }
   };
 
-  const tracks = [...new Map(score.notes.map((note) => [note.track ?? 0, note])).values()].sort((a, b) => (a.track ?? 0) - (b.track ?? 0));
+  const chooseLibrarySong = (song: LibrarySong, autoplay = false) => {
+    activateScore(song.score, song.id, song.mix);
+    setStatus(`已从本地曲库加载：${song.score.title}`);
+    if (autoplay) playFrom(0, speed, song.score);
+  };
+  endedRef.current = () => {
+    if (repeatMode === "one" && !currentSongId) { playFrom(0); return; }
+    const next = nextSong(library.map((song) => song.id), currentSongId, repeatMode);
+    const song = library.find((item) => item.id === next);
+    if (song) chooseLibrarySong(song, true);
+  };
+  const removeSong = async (song: LibrarySong) => {
+    try {
+      await deleteSong(song.id); setLibrary((items) => items.filter((item) => item.id !== song.id));
+      if (song.id === currentSongId) activateScore(DEMO_SCORE, null);
+      setStatus(`已从曲库删除：${song.score.title}`);
+    } catch (error) { setStatus(`删除失败：${String(error)}`); }
+  };
+  const changeTrackVolume = (track: number, volume: number) => {
+    engine.setTrackVolume(track, volume);
+    setTrackMixes((mixes) => ({ ...mixes, [track]: { ...mixes[track], volume } }));
+  };
+  const exportMusic = async (type: "midi" | "wav") => {
+    const settings = { mode: playbackMode, instrument, tracks: structuredClone(trackMixes), master: masterVolume, speed };
+    const stem = score.title.replace(/\.(mid|midi|musicxml|xml|mxl)$/i, "");
+    if (type === "midi") {
+      try { const saved = await downloadFile(`${stem}.mid`, exportMidi(score.notes, settings), "audio/midi"); setStatus(saved ? "MIDI 已导出；自定义音色需在目标播放器加载对应音源。" : "已取消保存 MIDI"); }
+      catch (error) { setStatus(`MIDI 导出失败：${String(error)}`); }
+      return;
+    }
+    setPosition(playing ? scheduler.position : position); scheduler.stop(); setPlaying(false); setBusy(true); setExportProgress(0);
+    engine.stopAll(); activeSources.current.clear(); pressedCodes.current.clear(); setActiveNotes(new Set());
+    const controller = new AbortController(); exportController.current = controller;
+    try {
+      const bytes = await renderWav(score, settings, engine.customPianoBuffer, controller.signal, setExportProgress);
+      if (!controller.signal.aborted) { const saved = await downloadFile(`${stem}.wav`, bytes, "audio/wav"); setStatus(saved ? "WAV 已导出 · 44.1 kHz · 立体声 · 包含当前配器和音量。" : "已取消保存 WAV"); }
+    } catch (error) { setStatus(controller.signal.aborted ? "已取消音频导出" : `WAV 导出失败：${String(error)}`); }
+    finally { exportController.current = null; setExportProgress(null); setBusy(false); }
+  };
 
   const shiftOctave = (amount: number) => {
     setBaseMidi((current) => Math.max(21, Math.min(108 - KEYBOARD_CODES.length + 1, current + amount * 12)));
@@ -462,6 +538,8 @@ export default function App() {
             <p className="hint-text">内置 Salamander Grand Piano · Alexander Holm · CC BY 3.0。采样全部在本地，也可导入自己的 SoundFont。<a href={`${import.meta.env.BASE_URL}piano-samples/ATTRIBUTION.md`} target="_blank" rel="noreferrer">音源署名与授权</a></p>
           </div>
 
+          <SongLibrary songs={library} current={currentSongId} disabled={busy} repeat={repeatMode} onRepeat={setRepeatMode} onSelect={chooseLibrarySong} onDelete={(song) => void removeSong(song)} />
+
           <div className="sidebar-section omr-section">
             <div className="section-label">本地识谱引擎（可选）</div>
             <label className="field-label" htmlFor="audiveris-path">Audiveris 启动器路径</label>
@@ -514,14 +592,14 @@ export default function App() {
                   try {
                     const response = await fetch(bandDemoUrl);
                     if (!response.ok) throw new Error("本地多轨演示文件缺失。");
-                    loadParsedScore("band-demo.mid", await response.arrayBuffer());
-                    await changeInstrumentation("multitrack", instrument, 0);
+                    await loadParsedScore("band-demo.mid", await response.arrayBuffer());
+                    await changeInstrumentation("multitrack", instrument, 0, {});
                   } catch (error) { setStatus(`演示加载失败：${String(error)}`); }
                   finally { setBusy(false); }
                 })();
               }}>多轨演示</button>
               <button className="secondary-button compact" type="button" onClick={() => void openScore()} disabled={busy}><Upload size={15} /> 替换乐谱</button>
-              <button className="icon-button" type="button" title="恢复演示旋律" onClick={() => { stopPlayback(); setScore(DEMO_SCORE); setStatus("已恢复内置演示旋律"); }}><RotateCcw size={16} /></button>
+              <button className="icon-button" type="button" title="恢复演示旋律" disabled={busy} onClick={() => { activateScore(DEMO_SCORE, null); setStatus("已恢复内置演示旋律"); }}><RotateCcw size={16} /></button>
             </div>
           </section>
 
@@ -561,7 +639,7 @@ export default function App() {
             </div>
             <div className="speed-control">
               <span>速度</span>
-              <select value={speed} onChange={(event) => changeSpeed(Number(event.target.value))} aria-label="播放速度">
+              <select value={speed} disabled={busy} onChange={(event) => changeSpeed(Number(event.target.value))} aria-label="播放速度">
                 <option value={0.5}>50%</option>
                 <option value={0.75}>75%</option>
                 <option value={1}>100%</option>
@@ -569,6 +647,7 @@ export default function App() {
                 <option value={1.5}>150%</option>
               </select>
             </div>
+            <label className="master-volume">总音量 <input type="range" aria-label="总音量" min="0" max="100" disabled={busy} value={Math.round(masterVolume * 100)} onChange={(event) => { const value = Number(event.target.value) / 100; setMasterVolume(value); engine.setMasterVolume(value); }} /><span>{Math.round(masterVolume * 100)}%</span></label>
           </section>
 
           <section className="instrument-panel" aria-label="乐器与音轨">
@@ -580,17 +659,17 @@ export default function App() {
                 </select>
               </label>
               <label>{playbackMode === "unified" ? "全曲乐器 / 键盘试听" : "键盘试听乐器"}
-                <select aria-label="演奏乐器" value={instrument} disabled={busy} onChange={(event) => void changeInstrumentation(playbackMode, event.target.value as InstrumentId)}>
-                  {INSTRUMENTS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </select>
+                <InstrumentSelect label="演奏乐器" value={instrument} disabled={busy} onChange={(value) => { if (value) void changeInstrumentation(playbackMode, value); }} />
               </label>
-              <span className="muted small">MuseScore General · 本地采样 · 无混响 · <a href={`${import.meta.env.BASE_URL}instruments/LICENSE.md`} target="_blank" rel="noreferrer">MIT 许可</a></span>
+              <span className="muted small">本地实录 / GM · 无混响 · <a href={`${import.meta.env.BASE_URL}instruments/LICENSE.md`} target="_blank" rel="noreferrer">MIT</a> / <a href={`${import.meta.env.BASE_URL}instruments/erhu-LICENSE.txt`} target="_blank" rel="noreferrer">CC0 许可</a></span>
             </div>
-            {playbackMode === "multitrack" && <div className="track-list">
-              {score.format !== "midi" && <p className="hint-text">当前 MusicXML 解析器不读取配器，各声部默认钢琴；可切换统一乐器。</p>}
-              {tracks.map((note) => <div key={note.track ?? 0}><span>{note.part || `音轨 ${(note.track ?? 0) + 1}`}</span><strong>{instrumentLabel(note)}</strong><span>{score.notes.filter((n) => n.track === note.track).length} 个音符</span></div>)}
-            </div>}
+            {playbackMode === "multitrack" && <TrackMixer score={score} mixes={trackMixes} disabled={busy} onVolume={changeTrackVolume} onInstrument={(track, value) => void changeInstrumentation(playbackMode, instrument, undefined, { ...trackMixes, [track]: { volume: trackMixes[track]?.volume ?? 1, instrument: value } })} />}
             {instrument === "drums" && <p className="hint-text">鼓组按 GM 鼓键位演奏：C2 底鼓、D2 军鼓、F♯2 闭镲。统一鼓组模式直接使用原音高作为鼓键，不自动生成节奏。</p>}
+            <div className="export-controls">
+              <button className="secondary-button compact" type="button" disabled={busy} onClick={() => void exportMusic("wav")}>导出 WAV 音频</button>
+              <button className="secondary-button compact" type="button" disabled={busy} onClick={() => void exportMusic("midi")}>导出 MIDI</button>
+              {exportProgress !== null ? <><progress aria-label="音频导出进度" value={exportProgress} max={1} /><span>{Math.round(exportProgress * 100)}%</span><button className="secondary-button compact" type="button" onClick={() => exportController.current?.abort()}>取消导出</button></> : <span className="muted small">使用当前速度、配器与音量 · 完全本地渲染</span>}
+            </div>
           </section>
 
           <ScoreTimeline score={score} position={position} activeNotes={activeNotes} onSeek={seek} />

@@ -3,7 +3,7 @@ import { midiToFrequency } from "../music/noteNames";
 import { SampledPiano, type SampleVoice } from "./SampledPiano";
 import pianoConfig from "./pianoSamples.json";
 import { InstrumentBank } from "./InstrumentBank";
-import { resolveInstrument, type PlaybackMode, type InstrumentId } from "./instruments";
+import { clampVolume, resolveInstrument, type PlaybackMode, type InstrumentId, type TrackMixes } from "./instruments";
 import type { NoteEvent } from "../../types/music";
 
 interface Voice {
@@ -13,6 +13,7 @@ interface Voice {
   gain?: GainNode;
   sample?: SampleVoice;
   bankChannel?: number;
+  pianoChannel?: number;
 }
 
 export class PianoEngine {
@@ -29,16 +30,50 @@ export class PianoEngine {
   private instruments: InstrumentBank | null = null;
   private playbackMode: PlaybackMode = "unified";
   private selectedInstrument: InstrumentId = "piano";
+  private trackMixes: TrackMixes = {};
+  private masterVolume = 1;
+  private trackOutputs = new Map<number, GainNode>();
+  private pianoChannels = new Map<number, number>();
+  private pianoBank = { bankMSB: 0, bankLSB: 0 };
+  private customPiano: ArrayBuffer | null = null;
+  get customPianoBuffer(): ArrayBuffer | null { return this.customPiano?.slice(0) ?? null; }
 
-  configureInstruments(mode: PlaybackMode, instrument: InstrumentId): void {
-    this.stopAll(); this.instruments?.reset();
-    this.playbackMode = mode; this.selectedInstrument = instrument;
+  setMasterVolume(value: number): void {
+    this.masterVolume = clampVolume(value);
+    if (this.master) this.master.gain.value = 0.72 * this.masterVolume;
   }
 
-  private patch(note?: Partial<NoteEvent>) { return resolveInstrument(this.playbackMode, this.selectedInstrument, note); }
+  setTrackVolume(track: number, value: number): void {
+    const volume = clampVolume(value);
+    this.trackMixes = { ...this.trackMixes, [track]: { ...this.trackMixes[track], volume } };
+    const output = this.trackOutputs.get(track);
+    if (output) output.gain.value = volume;
+    this.instruments?.setTrackVolume(track, volume);
+    const channel = this.pianoChannels.get(track);
+    if (channel !== undefined) this.synth?.controllerChange(channel, 11, Math.round(volume * 127));
+  }
+
+  private outputFor(track?: number): AudioNode {
+    if (track === undefined) return this.master!;
+    let output = this.trackOutputs.get(track);
+    if (!output) {
+      output = this.getContext().createGain(); output.gain.value = this.trackMixes[track]?.volume ?? 1;
+      output.connect(this.master!); this.trackOutputs.set(track, output);
+    }
+    return output;
+  }
+
+  configureInstruments(mode: PlaybackMode, instrument: InstrumentId, tracks: TrackMixes = {}): void {
+    this.stopAll(); this.instruments?.reset();
+    this.playbackMode = mode; this.selectedInstrument = instrument;
+    this.trackMixes = structuredClone(tracks);
+    for (const [track, output] of this.trackOutputs) output.gain.value = tracks[track]?.volume ?? 1;
+  }
+
+  private patch(note?: Partial<NoteEvent>) { return resolveInstrument(this.playbackMode, this.selectedInstrument, note, this.trackMixes); }
   private usesBank(note?: Partial<NoteEvent>): boolean {
     const patch = this.patch(note);
-    return patch.percussion || patch.program !== 0;
+    return patch.percussion || patch.program !== 0 || Boolean(patch.bankMSB);
   }
 
   async prepareInstruments(): Promise<void> {
@@ -54,7 +89,7 @@ export class PianoEngine {
     if (!this.context) {
       this.context = new AudioContext({ latencyHint: "interactive" });
       this.master = this.context.createGain();
-      this.master.gain.value = 0.72;
+      this.master.gain.value = 0.72 * this.masterVolume;
       this.master.connect(this.context.destination);
     }
     return this.context;
@@ -78,7 +113,7 @@ export class PianoEngine {
       await preparation;
       if (version !== this.loadVersion) throw new Error("已取消旧音源加载。");
       this.stopAll(); this.synth?.destroy(); this.synth = null;
-      this.useSamples = true; this.presetName = pianoConfig.name;
+      this.useSamples = true; this.presetName = pianoConfig.name; this.customPiano = null; this.pianoChannels.clear();
     } finally {
       if (this.samplePreparation === preparation) this.samplePreparation = null;
     }
@@ -123,6 +158,8 @@ export class PianoEngine {
       this.synth = synth;
       this.useSamples = false;
       this.presetName = piano.name;
+      this.pianoBank = { bankMSB: piano.bankMSB, bankLSB: piano.bankLSB };
+      this.pianoChannels.clear(); this.customPiano = buffer.slice(0);
     } catch (error) {
       synth.destroy();
       throw error;
@@ -144,18 +181,32 @@ export class PianoEngine {
       // Release/stop may have happened while resume was pending.
       if (this.voices.get(source) !== voice) return;
       const normalizedVelocity = Math.max(0.01, Math.min(1, velocity));
+      const track = source.startsWith("playback:") ? note?.track ?? 0 : undefined;
+      const volume = track === undefined ? 1 : this.trackMixes[track]?.volume ?? 1;
       voice.started = true;
       if (this.usesBank(note)) {
-        voice.bankChannel = this.instruments!.channel(this.patch(note), source.startsWith("playback:") ? `playback:${note?.track ?? 0}` : "manual");
+        voice.bankChannel = this.instruments!.channel(this.patch(note), track === undefined ? "manual" : `playback:${track}`, volume);
         this.instruments!.noteOn(voice.bankChannel, midi, Math.round(normalizedVelocity * 127));
         return;
       }
       if (this.useSamples) {
-        voice.sample = await this.sampledPiano!.noteOn(midi, normalizedVelocity, () => this.voices.get(source) === voice, source) ?? undefined;
+        voice.sample = await this.sampledPiano!.noteOn(midi, normalizedVelocity, () => this.voices.get(source) === voice, source, this.outputFor(track)) ?? undefined;
         return;
       }
       if (this.synth) {
-        this.synth.noteOn(0, midi, Math.round(normalizedVelocity * 127));
+        let channel = 0;
+        if (track !== undefined) {
+          const existing = this.pianoChannels.get(track);
+          channel = existing ?? this.pianoChannels.size + 1;
+          if (existing === undefined) {
+            while (this.synth.midiChannels.length <= channel) this.synth.addNewChannel();
+            this.synth.controllerChange(channel, 0, this.pianoBank.bankMSB); this.synth.controllerChange(channel, 32, this.pianoBank.bankLSB);
+            this.synth.midiChannels[channel].setDrums(false); this.synth.programChange(channel, 0); this.pianoChannels.set(track, channel);
+          }
+        }
+        voice.pianoChannel = channel;
+        this.synth.controllerChange(channel, 11, Math.round(volume * 127));
+        this.synth.noteOn(channel, midi, Math.round(normalizedVelocity * 127));
         return;
       }
       const now = context.currentTime;
@@ -165,7 +216,7 @@ export class PianoEngine {
       voiceGain.gain.setValueAtTime(0.0001, now);
       voiceGain.gain.exponentialRampToValueAtTime(normalizedVelocity * 0.15, now + 0.012);
       voiceGain.gain.exponentialRampToValueAtTime(0.001, now + 4);
-      voiceGain.connect(this.master!);
+      voiceGain.connect(this.outputFor(track));
       const frequency = midiToFrequency(midi);
       const partials = [
         { ratio: 1, level: 1, type: "triangle" as OscillatorType },
@@ -204,8 +255,8 @@ export class PianoEngine {
     if (this.synth) {
       // A MIDI note-off releases every matching pitch on this channel. Keep it held
       // until the last overlapping input/playback instance releases that pitch.
-      if (![...this.voices.values()].some((other) => other.started && other.bankChannel === undefined && !other.sample && other.midi === voice.midi)) {
-        this.synth.noteOff(0, voice.midi);
+      if (![...this.voices.values()].some((other) => other.started && other.pianoChannel === voice.pianoChannel && other.bankChannel === undefined && !other.sample && other.midi === voice.midi)) {
+        this.synth.noteOff(voice.pianoChannel ?? 0, voice.midi);
       }
       return;
     }
@@ -243,5 +294,6 @@ export class PianoEngine {
     }
     this.sampledPiano?.stopAll("playback:");
     this.instruments?.stopPlayback();
+    for (const channel of this.pianoChannels.values()) this.synth?.controllerChange(channel, 120, 0);
   }
 }

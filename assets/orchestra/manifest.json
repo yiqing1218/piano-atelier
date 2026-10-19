@@ -1,0 +1,509 @@
+{
+  "version": 1,
+  "erhuCommit": "6615047b2fd06126877483e97b8bb4af9d00b080",
+  "vscoCommit": "440300901dfe9275fd84e0b7763af1f8443ae62e",
+  "sfzCommit": "6dd651d55dde97fd4028699be9d4481f26917891",
+  "ukuleleCommit": "86d345f6f7b79a106ace98eca0da19b087786dba",
+  "sha256": "6cc469de391c9230b6f357e61dd14bc683972cc7a67e20b9dfcc2882cfb59c8c",
+  "bytes": 83690460,
+  "samples": [
+    {
+      "file": "erhu-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/LICENSE",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "bytes": 7048
+    },
+    {
+      "file": "vsco-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE",
+      "sha256": "36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673",
+      "bytes": 6555
+    },
+    {
+      "file": "ukulele-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/LICENSE.txt",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "bytes": 7048
+    },
+    {
+      "file": "erhu-mapping.sfz",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Programs/modules/maps/erhu_sus_map.sfz",
+      "sha256": "1557260408bb1be2ff99b9f1307e91f0226e5c87ce472029eae87f56b618cd69",
+      "bytes": 4358
+    },
+    {
+      "file": "erhu_d5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_d5_sus_rr1.wav",
+      "sha256": "dd7369c93c6d8ab2651049cfccf8eec56540029834981a64706bd55c55d711f6",
+      "bytes": 909218
+    },
+    {
+      "file": "erhu_eb5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_eb5_sus_rr1.wav",
+      "sha256": "2c63e7e6ec25d15669b90883abd0b3bb719dcfd2dfa38eb3ebfcfc48b03c6869",
+      "bytes": 788324
+    },
+    {
+      "file": "erhu_e5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_e5_sus_rr1.wav",
+      "sha256": "88a112f2e47d6af0d7b8692c4ec7a52e5d1d052cdc13c77cf430177003c203ae",
+      "bytes": 881684
+    },
+    {
+      "file": "erhu_f5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_f5_sus_rr1.wav",
+      "sha256": "a03941445662b2314b4e2575f49229f78f6385fc3876c65833c524648cf90b7f",
+      "bytes": 761222
+    },
+    {
+      "file": "erhu_gb5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_gb5_sus_rr1.wav",
+      "sha256": "01efdfcfc5bc72de6c9974af677b5020765dd9235370ffc3dafa8afc14678f0a",
+      "bytes": 776480
+    },
+    {
+      "file": "erhu_g5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_g5_sus_rr1.wav",
+      "sha256": "672a3caa8c698e55c9d1f9e29801ef2ab131aab84498235c2fc30d71557587da",
+      "bytes": 708134
+    },
+    {
+      "file": "erhu_ab5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_ab5_sus_rr1.wav",
+      "sha256": "b6392f26d3067aed5d4fdd3be79952d4fc1272e8a0bd2341f52a0d61636c8623",
+      "bytes": 729602
+    },
+    {
+      "file": "erhu_a5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_a5_sus_rr1.wav",
+      "sha256": "8f632281ccea6c4855b1dcce61f00ae9635f551d701c09fe69123042d3ac1a15",
+      "bytes": 682592
+    },
+    {
+      "file": "erhu_bb5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_bb5_sus_rr1.wav",
+      "sha256": "739db725d1b6c06173af3d2df5a12ea998fb72ba094f683e2ed4538091ad2dba",
+      "bytes": 628568
+    },
+    {
+      "file": "erhu_b5_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_b5_sus_rr1.wav",
+      "sha256": "a1233c366919478e866ff17f96b4bc62204a461aae0d9e5ca60ddf4207038092",
+      "bytes": 666284
+    },
+    {
+      "file": "erhu_c6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_c6_sus_rr1.wav",
+      "sha256": "de99454993ca46f1df0154441a1d59dc90f0ad2e56c6c0a900d586565ab2cf3a",
+      "bytes": 675548
+    },
+    {
+      "file": "erhu_db6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_db6_sus_rr1.wav",
+      "sha256": "425e5c81ef674561bcc4ac4073e601a8478e092f77725879ef18e702b32b94d1",
+      "bytes": 715562
+    },
+    {
+      "file": "erhu_d6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_d6_sus_rr1.wav",
+      "sha256": "55d407bc3054d06f19cb668610d0888e16e968eba003a7f890dda8e262561c32",
+      "bytes": 674714
+    },
+    {
+      "file": "erhu_eb6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_eb6_sus_rr1.wav",
+      "sha256": "f63560ce10270be0776c22b66dadd257aabe9a9500f0b90533d1d3c7ea2b898d",
+      "bytes": 516452
+    },
+    {
+      "file": "erhu_e6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_e6_sus_rr1.wav",
+      "sha256": "df88addf6787ea658ed5cf354886ae20317bcb59374ecbc5bf24a342d03fb4af",
+      "bytes": 573650
+    },
+    {
+      "file": "erhu_f6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_f6_sus_rr1.wav",
+      "sha256": "63a97dfc215ac5b7f4a755e1a38c74549aeaadd5996d38ee11a3f08b047ae7e3",
+      "bytes": 559526
+    },
+    {
+      "file": "erhu_gb6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_gb6_sus_rr1.wav",
+      "sha256": "0311aebd66847344f6f7f493f4107aa7d697ee79059c6aedba0bf3742c060112",
+      "bytes": 714788
+    },
+    {
+      "file": "erhu_g6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_g6_sus_rr1.wav",
+      "sha256": "54208182f2097709d8428ec28726fff4f816dfe50a1b51da4c6de61aefae7e47",
+      "bytes": 664676
+    },
+    {
+      "file": "erhu_ab6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_ab6_sus_rr1.wav",
+      "sha256": "cede78e8a1173030fda0137ec2708f01be611f696cb503e2f649c64078397e4f",
+      "bytes": 618368
+    },
+    {
+      "file": "erhu_a6_sus_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sfzinstruments/aliexpress-erhu/6615047b2fd06126877483e97b8bb4af9d00b080/Samples/sus/erhu_a6_sus_rr1.wav",
+      "sha256": "946113da4500cf02967fbfc7329218dcd72b4c9dabfc3e5ad8f1b6b7bb2030cb",
+      "bytes": 666110
+    },
+    {
+      "file": "trumpet-mapping.sfz",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/6dd651d55dde97fd4028699be9d4481f26917891/TrumpetSus.sfz",
+      "sha256": "8dc5eca44087b0f0af782b3a54ee10a263520d7756f6ed497aa1e3111eea66a6",
+      "bytes": 2510
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A#3_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A%233_v1_rr1.wav",
+      "sha256": "0a432ceeddcecea962e2e0ebb5c3e80be3d3f251d38c5d4ddc0df4089e97351b",
+      "bytes": 3398084
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A2_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A2_v1_rr1.wav",
+      "sha256": "151613515233cb0ac29daba9c9c0db443e2e19465285d50967c66824b5ccdba9",
+      "bytes": 2100400
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A4_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A4_v1_rr1.wav",
+      "sha256": "f720df13ae0eef9889692283a4ea9033ef4d4826ded3f47dbe81a0dd2585a3cf",
+      "bytes": 2528080
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_C3_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_C3_v1_rr1.wav",
+      "sha256": "fc49adedf0922c42583145eedd7ba4707cf97a92fb446b73bf160003190efebe",
+      "bytes": 2677040
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_C5_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_C5_v1_rr1.wav",
+      "sha256": "8112b044343d65e2c368ef740fd36935ceaa1865dcbcceb9ee409544ef805bd8",
+      "bytes": 2568220
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_D#3_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_D%233_v1_rr1.wav",
+      "sha256": "360a5b80fcb79e0ebe95b993eaaf031a47c1a5fbf9a235eb2c359ceb9796765d",
+      "bytes": 2757848
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_D4_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_D4_v1_rr1.wav",
+      "sha256": "fa4a3f77ead22cb58afdaa1732b9b6c8ec6033708ae339df6446a56c1b7cc8e9",
+      "bytes": 2878200
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_F2_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_F2_v1_rr1.wav",
+      "sha256": "abda84b86c7eb12a236e976230bbde9898c709f39ba992424b5426bf612c915b",
+      "bytes": 2204420
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_F4_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_F4_v1_rr1.wav",
+      "sha256": "81954b71f23a9ebe3ea02c7c9c6cfb68a3904a965bc916bc27f061e643604992",
+      "bytes": 2442252
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_G3_v1_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_G3_v1_rr1.wav",
+      "sha256": "949446498df4e1402f00023c91bd45c3b9a793ce8076a871b800e76ce144d4fa",
+      "bytes": 3010072
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A#3_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A%233_v3_rr1.wav",
+      "sha256": "c931621fae92e22cc73ee43924c0d30ee629764bb37c30cc427b59411198461d",
+      "bytes": 1667240
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A2_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A2_v3_rr1.wav",
+      "sha256": "6c331fb59ab6668e4f77ce59c19445fc52d1082f376df853c9282ed518205a5f",
+      "bytes": 1041256
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_A4_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A4_v3_rr1.wav",
+      "sha256": "0cd9d6d4dedadc6bfb9625045e632f84f6cd7b2a005f72b7efd198e5b0571172",
+      "bytes": 1730412
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_C3_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_C3_v3_rr1.wav",
+      "sha256": "4a55ab4d867cfa3499fbcf1c5d8d530f757621a9979aee5b46d3fd69a2931c99",
+      "bytes": 1234136
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_C5_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_C5_v3_rr1.wav",
+      "sha256": "ba7dc7050f277c5bba6c59a6dd330c2d50e29dc1d97bd19fb6bcbba4a8cad4d5",
+      "bytes": 1339832
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_D#3_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_D%233_v3_rr1.wav",
+      "sha256": "8cf8ffb7948c8d787fa9dd2469ff7fc60ad26f079721ed038c9d6a9d6b402318",
+      "bytes": 1654796
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_D4_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_D4_v3_rr1.wav",
+      "sha256": "71d77fc5c3c43b9453f17293c6039bf8554dec6581ca15c14c45893f8bc57566",
+      "bytes": 1422408
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_F2_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_F2_v3_rr1.wav",
+      "sha256": "31992fbdf596d77e9464dc57166718389f13870f8b9b1f1e83380f5ec2217c87",
+      "bytes": 980856
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_F4_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_F4_v3_rr1.wav",
+      "sha256": "4138d1dc994d485f8b7deecbe7811c2152006d5e8cde8d4c1256c72be7179af3",
+      "bytes": 1269372
+    },
+    {
+      "file": "Sum_SHTrumpet_sus_G3_v3_rr1.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Trumpet/sus/Sum_SHTrumpet_sus_G3_v3_rr1.wav",
+      "sha256": "e916631d4ef5c7d2afa356b76cb0d3a18ba2702d1229535edf4fb6d73c2e521c",
+      "bytes": 1638452
+    },
+    {
+      "file": "tuba-mapping.sfz",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/6dd651d55dde97fd4028699be9d4481f26917891/TubaSus.sfz",
+      "sha256": "19108d85bb4fbfa21e6b754f01ae1b578f8e33cd1c0ef7b41fee9bc16a6d6ef8",
+      "bytes": 2737
+    },
+    {
+      "file": "Tuba3_sus_A#0_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%230_v1_rr1_Mid.wav",
+      "sha256": "0a6738c9e6e1b0500b228baa6adbad9c1c77081eff020c9185bdade25928d0a2",
+      "bytes": 1416512
+    },
+    {
+      "file": "Tuba3_sus_A#1_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%231_v1_rr1_Mid.wav",
+      "sha256": "cee95c4c80bb8673c37e757e21c4435df4796eacfbe7911a3efd1c0e0c35f7db",
+      "bytes": 1750600
+    },
+    {
+      "file": "Tuba3_sus_A#2_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%232_v1_rr1_Mid.wav",
+      "sha256": "4b199229056857d3b65b5da8a58b6844537c68ed02bb9aaa36517156b59bda28",
+      "bytes": 1264196
+    },
+    {
+      "file": "Tuba3_sus_D#1_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D%231_v1_rr1_Mid.wav",
+      "sha256": "04bc8b6878adab4df91d14ad102372377e2d6da80e9b7d011120679a7e0b056e",
+      "bytes": 1388496
+    },
+    {
+      "file": "Tuba3_sus_D2_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D2_v1_rr1_Mid.wav",
+      "sha256": "20751d96684e69040d86f6714955ae40c5c2d42694c8b6a70fef1c4aef1d5157",
+      "bytes": 2237900
+    },
+    {
+      "file": "Tuba3_sus_D3_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D3_v1_rr1_Mid.wav",
+      "sha256": "8f2bc8f32c619d25955c397ed9bfa5b2bb78f702688d952ae48764bf6f8f68b1",
+      "bytes": 1692716
+    },
+    {
+      "file": "Tuba3_sus_F0_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F0_v1_rr1_Mid.wav",
+      "sha256": "cfcf1705f2e5ead3e0e5a95a046b29412c7037865c823583285ff72541286d2c",
+      "bytes": 701860
+    },
+    {
+      "file": "Tuba3_sus_F1_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F1_v1_rr1_Mid.wav",
+      "sha256": "ae5f0afd08dfd4439f60b647859ef1eb4897f12804d3a729b2f3d12096a0fdb5",
+      "bytes": 1712028
+    },
+    {
+      "file": "Tuba3_sus_F2_v1_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F2_v1_rr1_Mid.wav",
+      "sha256": "54dd19d0c35215f8b62cf10b5f4de52f869d506fc061bedabb1e6bfbe7c4e8e5",
+      "bytes": 3020752
+    },
+    {
+      "file": "Tuba3_sus_A#0_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%230_v2_rr1_Mid.wav",
+      "sha256": "044f31773953d600c2591b78132e7e839cf064c29fbe41b039241de83efce777",
+      "bytes": 1313980
+    },
+    {
+      "file": "Tuba3_sus_A#1_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%231_v2_rr1_Mid.wav",
+      "sha256": "64fba4c0bcdc36c82e48ec63d6820940b9c7074af096f4dac417147acd8d3a26",
+      "bytes": 1423172
+    },
+    {
+      "file": "Tuba3_sus_A#2_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%232_v2_rr1_Mid.wav",
+      "sha256": "8821818170c62d1f084104311ff0832e082a66c3899c3af5da1e8fc7a1f6815f",
+      "bytes": 1726720
+    },
+    {
+      "file": "Tuba3_sus_D#1_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D%231_v2_rr1_Mid.wav",
+      "sha256": "f97bec1f3266319482635f19c3717a5d3b8579c7c2c62e3f5f0ea3ed58365744",
+      "bytes": 1125736
+    },
+    {
+      "file": "Tuba3_sus_D2_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D2_v2_rr1_Mid.wav",
+      "sha256": "005cd575e2d12b54a5a8f305b859cb6ae89cdbc010027b32fa0091aad39fffab",
+      "bytes": 2161496
+    },
+    {
+      "file": "Tuba3_sus_F1_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F1_v2_rr1_Mid.wav",
+      "sha256": "e31fda8c91f586ec2c873406efd4c67b0d052e2d82af154667cc0a17aaf91674",
+      "bytes": 1166700
+    },
+    {
+      "file": "Tuba3_sus_F2_v2_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F2_v2_rr1_Mid.wav",
+      "sha256": "b521e56e3a7cdef1c65694b95dd843ea01d0b3cffa0cbcdd43276d71afc01a4a",
+      "bytes": 2065304
+    },
+    {
+      "file": "Tuba3_sus_A#0_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%230_v3_rr1_Mid.wav",
+      "sha256": "13617e024fcfc70d3b93430909d96e2a2c551505eb8c0a94b0de63b2612bc74d",
+      "bytes": 712404
+    },
+    {
+      "file": "Tuba3_sus_A#1_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%231_v3_rr1_Mid.wav",
+      "sha256": "b69c9899debceb9f37ada54bc85f5fba9df5e7c8dc85356e5c01091383b77a0a",
+      "bytes": 764660
+    },
+    {
+      "file": "Tuba3_sus_A#2_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_A%232_v3_rr1_Mid.wav",
+      "sha256": "6c527d8ded1c71114971b60c718fb3a533b4a66c75ebfe69519d36b0ec7bda05",
+      "bytes": 973392
+    },
+    {
+      "file": "Tuba3_sus_D#1_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D%231_v3_rr1_Mid.wav",
+      "sha256": "c267f4e366f2521b4a00b3e99de648441928fa84998f882d31aa80be30f4a360",
+      "bytes": 608532
+    },
+    {
+      "file": "Tuba3_sus_D2_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_D2_v3_rr1_Mid.wav",
+      "sha256": "714f93eab4ac32aaa88b1265ac12261d39bd97798cea0a81e7fd20afd977af81",
+      "bytes": 803804
+    },
+    {
+      "file": "Tuba3_sus_F1_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F1_v3_rr1_Mid.wav",
+      "sha256": "f1e7a7834d7e1bc906cad605507d83876b52becc707cb0d77ef3dbd629ffe4cf",
+      "bytes": 569140
+    },
+    {
+      "file": "Tuba3_sus_F2_v3_rr1_Mid.wav",
+      "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Brass/Tuba/sus/Tuba3_sus_F2_v3_rr1_Mid.wav",
+      "sha256": "0d60f5d3dd72d4a1b79d6f1366249a1b834e19f38a87b04645cad3bbf5982c0a",
+      "bytes": 639552
+    },
+    {
+      "file": "ukulele-mapping.sfz",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/Ukulele%2020260811.sfz",
+      "sha256": "03c1758879cf937cf7d1dac86d560d16ec47e7fb1c82c4601a6f6476ee420f72",
+      "bytes": 1271
+    },
+    {
+      "file": "C4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/C4.flac",
+      "sha256": "aa23ee3722f8f418c7078243b4e1e2cb8022ff7c9e94801098cf3aa1694ec4b4",
+      "bytes": 287928
+    },
+    {
+      "file": "D4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/D4.flac",
+      "sha256": "113ecda48383232739edbc471c2ed6be5bf3999be0075c7fa6d6bd0e98edfe98",
+      "bytes": 275384
+    },
+    {
+      "file": "E4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/E4.flac",
+      "sha256": "8d5ea8c5ca9cddca9d5af0c37b8e022fddc71444d0f81718695c9de706d8908e",
+      "bytes": 287158
+    },
+    {
+      "file": "F#4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/F%234.flac",
+      "sha256": "5b4a82c7c8c9e57185e2510771a06df25c225fd78487e54b79d960f08c6e2653",
+      "bytes": 159532
+    },
+    {
+      "file": "G4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/G4.flac",
+      "sha256": "e1952cca1c74d0dbab6053c081eda7f79e1eb2f11c1bd485aafdd51f77df1e93",
+      "bytes": 157155
+    },
+    {
+      "file": "A4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/A4.flac",
+      "sha256": "ce575bc244682dfc6499a68e6ebb1195f043cc14dc49a8c2e4ea7e384bd2f114",
+      "bytes": 269272
+    },
+    {
+      "file": "B4.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/B4.flac",
+      "sha256": "04102fb6c825f6ec23c4c08b89b34aba1412109d2e3950eb2399decd53ad49ae",
+      "bytes": 187923
+    },
+    {
+      "file": "C#5.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/C%235.flac",
+      "sha256": "604a9de9ab270294fa123cd9bf175fedaf295c63a9305e7cb3e187b666a6798e",
+      "bytes": 191748
+    },
+    {
+      "file": "D#5.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/D%235.flac",
+      "sha256": "0a6e011f0ef5d96ef51554cb5daaad788ec3240b723b4846411698194ff2f2b0",
+      "bytes": 122578
+    },
+    {
+      "file": "F5.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/F5.flac",
+      "sha256": "5b85d224cee53fba23fda855ff34b919553bfc9df9ee1990df68aeff59857bc3",
+      "bytes": 122495
+    },
+    {
+      "file": "G5.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/G5.flac",
+      "sha256": "429f4ab8c6fff45041c7d688341a2d0af2710036a72505ad62198a1e6188c226",
+      "bytes": 141369
+    },
+    {
+      "file": "A5.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/A5.flac",
+      "sha256": "877bcb793b9c7320777c0b164b78444a39c9b93da6ddafc95da5e91b085bccc7",
+      "bytes": 152945
+    },
+    {
+      "file": "C6.flac",
+      "url": "https://raw.githubusercontent.com/freepats/ukulele1/86d345f6f7b79a106ace98eca0da19b087786dba/samples/C6.flac",
+      "sha256": "e397e1a73588074f9d636f9b128fbca8c52fd08df89cc893c5467f9256ea02cd",
+      "bytes": 103168
+    }
+  ]
+}

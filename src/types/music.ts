@@ -7,6 +7,7 @@ export interface NoteEvent {
   track?: number;
   part?: string;
   program?: number;
+  bankMSB?: number;
   channel?: number;
   percussion?: boolean;
   instrumentName?: string;
